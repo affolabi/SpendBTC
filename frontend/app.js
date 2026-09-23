@@ -537,20 +537,20 @@ async function resetDemoData() {
 }
 
 // ------------------------------------------------------------------------------
-// Guided Hackathon Demo Tour (PRD Section 21)
+// Guided Grant Proposal & Architecture Walkthrough (PRD Section 21)
 // ------------------------------------------------------------------------------
 const TOUR_SCENES = [
   {
     step: 1,
     title: "Scene 1: Available to Spend",
-    badge: "PRD Section 21 • Scene 1",
+    badge: "Architecture Spec • Scene 1",
     narrative: "User opens SpendBTC. Instead of seeing complex UTXOs or Stacks gas units, they see familiar available spending power: <strong>$1,284.62</strong> (backed transparently by 0.018 BTC and 0.006 sBTC).",
     action: () => switchTab('consumer')
   },
   {
     step: 2,
     title: "Scene 2: Select Pay ₦50,000",
-    badge: "PRD Section 21 • Scene 2",
+    badge: "Architecture Spec • Scene 2",
     narrative: "User selects 'Pay' and enters <strong>₦50,000</strong>. No need to calculate satoshis or check coin price tickers.",
     action: () => {
       switchTab('consumer');
@@ -560,28 +560,28 @@ const TOUR_SCENES = [
   {
     step: 3,
     title: "Scene 3: Real-Time Quote Engine",
-    badge: "PRD Section 21 • Scene 3",
+    badge: "Architecture Spec • Scene 3",
     narrative: "SpendBTC Quote Engine calculates <strong>0.00042 sBTC</strong>, evaluates multi-route liquidity (Stacks Direct vs Bitflow vs Lightning), locks the rate for 30s, and shows exact fees.",
     action: () => requestPaymentQuote()
   },
   {
     step: 4,
     title: "Scene 4 & 5: Confirm & Wallet Authorization",
-    badge: "PRD Section 21 • Scene 4 & 5",
+    badge: "Architecture Spec • Scene 4 & 5",
     narrative: "User confirms the payment. Wallet authorization (Leather / Xverse) signs the non-custodial transaction on the Stacks blockchain.",
     action: () => authorizePayment()
   },
   {
     step: 5,
     title: "Scene 6 & 7: Settlement Confirmed & Receipt",
-    badge: "PRD Section 21 • Scene 6 & 7",
+    badge: "Architecture Spec • Scene 6 & 7",
     narrative: "SpendBTC state machine progresses from <strong>PROCESSING</strong> to <strong>CONFIRMED</strong>. The ₦50,000 receipt is generated with a live Stacks testnet TxID.",
     action: () => {}
   },
   {
     step: 6,
     title: "The Virtual Card Prototype",
-    badge: "PRD Section 10 • Virtual Card",
+    badge: "Architecture Spec • Virtual Card Concept",
     narrative: "The card is the future interface. Users can lock/freeze their card, adjust spending limits, or tap to pay at ordinary Visa/Mastercard terminals using sBTC balances.",
     action: () => {
       closePaymentModal();
@@ -591,7 +591,7 @@ const TOUR_SCENES = [
   {
     step: 7,
     title: "The Infrastructure Pitch: Developer Portal",
-    badge: "PRD Section 21 • The Final Transition",
+    badge: "Architecture Spec • Developer Infrastructure",
     narrative: "<strong>'The card is only the interface. The infrastructure is the actual product.'</strong> SpendBTC exposes this entire capability via REST APIs & Webhooks so any wallet or fintech can integrate Bitcoin spending in days.",
     action: () => {
       closePaymentModal();
