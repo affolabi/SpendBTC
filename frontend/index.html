@@ -21,562 +21,590 @@
             stacksCoral: '#FC6432',
             stacksOrange: '#FF5500',
             stacksIndigo: '#5546FF',
-            carbonMain: '#07070A',
-            carbonSurface: '#0E0E14',
-            carbonCard: '#13131C',
-            carbonCardHover: '#1A1A26',
-            carbonBorder: 'rgba(255, 255, 255, 0.08)'
+            bgApp: '#08090D',
+            bgSidebar: '#0D0E15',
+            bgSurface: '#12141D',
+            bgCard: '#161824',
+            bgCardHover: '#1D202F',
+            borderSubtle: 'rgba(255, 255, 255, 0.07)'
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-carbonMain text-white min-h-screen flex flex-col antialiased selection:bg-stacksCoral selection:text-black">
+<body class="bg-bgApp text-white min-h-screen flex antialiased selection:bg-stacksCoral selection:text-black">
 
-  <!-- TOP NAVIGATION BAR (Stacks.co Inspired) -->
-  <header class="border-b border-carbonBorder bg-carbonMain/80 backdrop-blur-xl sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- ============================================================== -->
+  <!-- LEFT SIDEBAR (Standard Fintech Shell)                          -->
+  <!-- ============================================================== -->
+  <aside class="w-64 border-r border-borderSubtle bg-bgSidebar flex flex-col justify-between hidden md:flex shrink-0 z-30">
+    <div class="p-6 space-y-8">
       
-      <!-- Logo & Stacks Pill -->
+      <!-- Brand Logo -->
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-stacksOrange to-stacksIndigo flex items-center justify-center shadow-lg shadow-stacksCoral/20">
           <i data-lucide="zap" class="w-5 h-5 text-white fill-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-extrabold text-xl tracking-tight text-white">Spend<span class="text-stacksCoral">BTC</span></span>
-            <span class="stacks-badge stacks-badge-indigo">sBTC on Stacks</span>
+            <span class="font-extrabold text-lg tracking-tight text-white">Spend<span class="text-stacksCoral">BTC</span></span>
           </div>
-          <p class="text-[11px] text-slate-400">The Spending Layer for Bitcoin</p>
+          <span class="status-pill pill-indigo text-[10px]">sBTC Rails</span>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1 bg-carbonSurface/90 p-1 rounded-xl border border-carbonBorder text-xs font-semibold">
-        <button onclick="switchTab('consumer')" id="nav-consumer" class="px-4 py-2 rounded-lg transition-all bg-carbonCard text-white shadow-sm flex items-center gap-2">
-          <i data-lucide="wallet" class="w-3.5 h-3.5 text-stacksCoral"></i> Spending App
+      <!-- Navigation Links -->
+      <nav class="space-y-1.5">
+        <button onclick="switchTab('consumer')" id="nav-consumer" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all bg-bgCard text-white border border-borderSubtle">
+          <i data-lucide="wallet" class="w-4 h-4 text-stacksCoral"></i>
+          <span>Spending & Pay</span>
         </button>
-        <button onclick="switchTab('card')" id="nav-card" class="px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white flex items-center gap-2">
-          <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Virtual Card
+
+        <button onclick="switchTab('card')" id="nav-card" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all text-slate-400 hover:text-white hover:bg-bgCard">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          <span>Virtual Card</span>
         </button>
-        <button onclick="switchTab('ledger')" id="nav-ledger" class="px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white flex items-center gap-2">
-          <i data-lucide="receipt" class="w-3.5 h-3.5"></i> Transactions
+
+        <button onclick="switchTab('ledger')" id="nav-ledger" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all text-slate-400 hover:text-white hover:bg-bgCard">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          <span>Transactions</span>
         </button>
-        <button onclick="switchTab('developer')" id="nav-developer" class="px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white flex items-center gap-2">
-          <i data-lucide="code-2" class="w-3.5 h-3.5 text-stacksIndigo"></i> Developer Portal
+
+        <button onclick="switchTab('developer')" id="nav-developer" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all text-slate-400 hover:text-white hover:bg-bgCard">
+          <i data-lucide="code-2" class="w-4 h-4 text-stacksIndigo"></i>
+          <span>Developer Portal</span>
         </button>
+
+        <div class="pt-4 border-t border-borderSubtle/60">
+          <button onclick="startDemoStory()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-stacksCoral hover:bg-stacksCoral/10 transition-all border border-stacksCoral/20">
+            <i data-lucide="play" class="w-4 h-4 fill-stacksCoral"></i>
+            <span>Architecture Tour</span>
+          </button>
+        </div>
       </nav>
+    </div>
 
-      <!-- Right Actions: Wallet & Tour -->
-      <div class="flex items-center gap-3">
-        <!-- Guided Walkthrough Tour -->
-        <button onclick="startDemoStory()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl btn-stacks-secondary text-xs font-semibold text-slate-200 hover:text-white">
-          <i data-lucide="play" class="w-3 h-3 text-stacksCoral fill-stacksCoral"></i> Architecture Tour
+    <!-- Sidebar Bottom Status & Profile -->
+    <div class="p-6 border-t border-borderSubtle space-y-4">
+      <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Stacks Testnet
+        </span>
+        <span class="text-slate-500">#312,410</span>
+      </div>
+
+      <div onclick="openWalletModal()" class="flex items-center justify-between p-2.5 rounded-xl bg-bgSurface border border-borderSubtle hover:border-slate-500 cursor-pointer transition-all">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-stacksCoral/10 border border-stacksCoral/30 flex items-center justify-center text-stacksCoral font-bold text-xs">
+            SP
+          </div>
+          <div class="text-left">
+            <p class="text-xs font-semibold text-white truncate max-w-[100px]" id="sidebar-user-name">Vittorio</p>
+            <p class="text-[10px] text-slate-400 font-mono" id="sidebar-short-address">SP2J...V9EJ7</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-500"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================== -->
+  <!-- MAIN APP AREA (Header + Content Views)                         -->
+  <!-- ============================================================== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- TOP HEADER -->
+    <header class="h-16 border-b border-borderSubtle bg-bgSidebar/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
+      
+      <!-- Left: Mobile menu button & Breadcrumb -->
+      <div class="flex items-center gap-4">
+        <!-- Mobile Nav Trigger -->
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-xl bg-bgSurface border border-borderSubtle text-slate-300">
+          <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
 
-        <!-- Stacks Wallet Connection Trigger -->
-        <button onclick="openWalletModal()" id="btn-wallet-connect" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-carbonBorder bg-carbonSurface hover:border-slate-500 text-xs font-mono transition-all">
+        <div class="flex items-center gap-2 text-xs font-medium">
+          <span class="text-slate-400">SpendBTC</span>
+          <span class="text-slate-600">/</span>
+          <span class="text-white font-semibold" id="topbar-current-view">Spending & Pay</span>
+        </div>
+      </div>
+
+      <!-- Right: Price Ticker, Currency Selector & Wallet -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Live BTC Reference Rate Ticker -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-bgSurface border border-borderSubtle text-[11px] font-mono text-slate-300">
+          <span class="text-amber-400 font-bold">₿</span>
+          <span>$74,400 USD</span>
+        </div>
+
+        <!-- Currency Selector -->
+        <div class="relative">
+          <select id="currency-selector" onchange="changeDisplayCurrency(this.value)" class="bg-bgSurface text-white text-xs font-bold rounded-xl px-3 py-1.5 border border-borderSubtle focus:outline-none focus:border-stacksCoral cursor-pointer font-mono">
+            <option value="USD">USD ($)</option>
+            <option value="NGN" selected>NGN (₦)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="KES">KES (KSh)</option>
+          </select>
+        </div>
+
+        <!-- Wallet Modal Button -->
+        <button onclick="openWalletModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-borderSubtle bg-bgSurface hover:border-slate-500 text-xs font-mono transition-all">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="topbar-address-label">SP2J...V9EJ7</span>
         </button>
       </div>
+    </header>
 
-    </div>
-  </header>
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 p-6 sm:p-8 max-w-6xl w-full mx-auto space-y-8">
 
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- ========================================== -->
-    <!-- TAB 1: CONSUMER SPENDING APP               -->
-    <!-- ========================================== -->
-    <section id="tab-consumer" class="space-y-8">
-      
-      <!-- Stacks.co Hero Card -->
-      <div class="stacks-panel stacks-glow-orange rounded-3xl p-6 sm:p-10 relative overflow-hidden">
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-          
-          <div class="space-y-3">
-            <div class="flex items-center gap-2">
-              <span class="stacks-badge stacks-badge-coral">Available Spending Power</span>
-              <span class="text-xs text-slate-400">Fiat Denominated • sBTC Settled</span>
-            </div>
-            
-            <div class="flex items-baseline gap-4 flex-wrap">
-              <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white font-mono" id="hero-fiat-balance">$1,284.62</h1>
-              <span class="text-lg sm:text-xl text-slate-400 font-semibold" id="hero-local-equiv">≈ ₦2,055,392</span>
-            </div>
-            
-            <p class="text-xs sm:text-sm text-slate-400 max-w-xl">
-              Pay in any local currency while keeping your capital in native Bitcoin and Stacks sBTC.
-            </p>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="flex flex-wrap items-center gap-3">
-            <button onclick="openPaymentModal(50000, 'NGN')" class="btn-stacks-primary px-6 py-3.5 rounded-2xl text-xs sm:text-sm flex items-center gap-2">
-              <i data-lucide="arrow-up-right" class="w-4 h-4 text-black"></i> Pay ₦50,000 (Test)
-            </button>
-            <button onclick="openPaymentModal()" class="btn-stacks-secondary px-5 py-3.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2">
-              <i data-lucide="send" class="w-4 h-4 text-slate-300"></i> Custom Pay
-            </button>
-            <button onclick="resetDemoData()" title="Reset demo state" class="btn-stacks-secondary p-3.5 rounded-2xl text-slate-400 hover:text-white">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Asset Breakdown Chips (Stacks Style) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-10 pt-8 border-t border-carbonBorder">
-          
-          <!-- Bitcoin L1 Capital -->
-          <div class="flex items-center justify-between p-4 rounded-2xl bg-carbonMain/70 border border-carbonBorder">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-extrabold text-base">₿</div>
-              <div>
-                <p class="text-[11px] text-slate-400 font-medium">Bitcoin (L1 Reserve)</p>
-                <p class="text-sm font-bold text-white font-mono" id="breakdown-btc">0.01800000 BTC</p>
-              </div>
-            </div>
-            <span class="text-xs text-slate-400 font-mono" id="breakdown-btc-usd">≈ $1,339.20</span>
-          </div>
-
-          <!-- sBTC Stacks Spending Rails -->
-          <div class="flex items-center justify-between p-4 rounded-2xl bg-carbonMain/70 border border-carbonBorder">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-stacksCoral/10 border border-stacksCoral/30 flex items-center justify-center text-stacksCoral font-extrabold text-base">s₿</div>
-              <div>
-                <p class="text-[11px] text-slate-400 font-medium">sBTC (Stacks Spending)</p>
-                <p class="text-sm font-bold text-white font-mono" id="breakdown-sbtc">0.00600000 sBTC</p>
-              </div>
-            </div>
-            <span class="stacks-badge stacks-badge-coral font-mono" id="breakdown-sbtc-usd">≈ $446.40</span>
-          </div>
-
-          <!-- Spending Velocity Limit -->
-          <div class="flex items-center justify-between p-4 rounded-2xl bg-carbonMain/70 border border-carbonBorder sm:col-span-2 lg:col-span-1">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <p class="text-[11px] text-slate-400 font-medium">Daily Limit</p>
-                <p class="text-sm font-bold text-white font-mono">$5,000.00 USD</p>
-              </div>
-            </div>
-            <span class="stacks-badge stacks-badge-green">100% Available</span>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Recent Transactions Activity -->
-      <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <i data-lucide="activity" class="w-5 h-5 text-stacksCoral"></i>
-            <h2 class="text-base font-bold text-white">Recent Spending Activity</h2>
-          </div>
-          <button onclick="switchTab('ledger')" class="text-xs text-stacksCoral font-semibold hover:underline flex items-center gap-1">
-            View full ledger <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <div class="divide-y divide-carbonBorder" id="recent-activity-list">
-          <!-- Populated dynamically by app.js -->
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 2: VIRTUAL CARD PROTOTYPE              -->
-    <!-- ========================================== -->
-    <section id="tab-card" class="space-y-8 hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- ============================================================== -->
+      <!-- VIEW 1: CONSUMER SPENDING & PAY (Default)                      -->
+      <!-- ============================================================== -->
+      <section id="tab-consumer" class="space-y-8">
         
-        <!-- Virtual Card Graphic (PRD Section 10) -->
-        <div class="lg:col-span-6 space-y-6">
-          <div class="virtual-card rounded-3xl p-6 sm:p-8 text-white aspect-[1.586/1] flex flex-col justify-between shadow-2xl relative" id="virtual-card-box">
+        <!-- Standard Hero Balance Panel -->
+        <div class="fintech-panel glow-coral p-8 relative overflow-hidden">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             
-            <div class="flex items-center justify-between">
+            <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-stacksCoral flex items-center justify-center">
-                  <i data-lucide="zap" class="w-4 h-4 text-black fill-black"></i>
-                </div>
-                <span class="font-extrabold tracking-tight text-lg">Spend<span class="text-stacksCoral">BTC</span></span>
-              </div>
-              <span class="stacks-badge stacks-badge-coral">sBTC Debit</span>
-            </div>
-
-            <div class="flex items-center gap-4 my-2">
-              <div class="chip"></div>
-              <i data-lucide="wifi" class="w-6 h-6 text-slate-400 rotate-90"></i>
-            </div>
-
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <p class="font-mono text-xl sm:text-2xl tracking-widest font-semibold drop-shadow" id="card-display-number">4532 •••• •••• 4901</p>
-                <button onclick="toggleCardNumberVisibility()" class="text-slate-400 hover:text-white p-1">
-                  <i data-lucide="eye" id="card-eye-icon" class="w-4 h-4"></i>
-                </button>
+                <span class="status-pill pill-coral">Available Spending Balance</span>
+                <span class="text-xs text-slate-400">Non-Custodial sBTC</span>
               </div>
 
-              <div class="flex items-center justify-between text-xs text-slate-300 font-mono pt-2">
-                <div>
-                  <span class="text-[10px] uppercase text-slate-400 block">Cardholder</span>
-                  <span class="font-bold text-white uppercase tracking-wider" id="card-holder-name">VITTORIO AFFOLABI</span>
-                </div>
-                <div>
-                  <span class="text-[10px] uppercase text-slate-400 block">Expires</span>
-                  <span class="font-bold text-white" id="card-expiry">09/28</span>
-                </div>
-                <div>
-                  <span class="text-[10px] uppercase text-slate-400 block">CVV</span>
-                  <span class="font-bold text-white" id="card-cvv">•••</span>
-                </div>
-                <div class="text-right font-black italic text-lg text-slate-200">
-                  VISA
-                </div>
+              <div class="flex items-baseline gap-4 flex-wrap">
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono" id="hero-fiat-balance">₦2,055,392</h1>
+                <span class="text-slate-400 text-lg font-semibold font-mono" id="hero-usd-equiv">≈ $1,284.62 USD</span>
               </div>
+              <p class="text-xs text-slate-400">Total spending power translated instantly from your Bitcoin & sBTC balances.</p>
             </div>
 
-            <!-- Frozen Overlay -->
-            <div id="card-frozen-overlay" class="absolute inset-0 bg-blue-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2 hidden">
-              <i data-lucide="snowflake" class="w-12 h-12 text-blue-300 animate-spin" style="animation-duration: 10s;"></i>
-              <p class="text-lg font-bold text-white">Card Frozen</p>
-              <p class="text-xs text-blue-200">Transactions are temporarily blocked</p>
-            </div>
-          </div>
-
-          <!-- Note from PRD -->
-          <div class="p-4 rounded-2xl bg-carbonSurface border border-carbonBorder flex items-start gap-3 text-xs text-slate-400">
-            <i data-lucide="info" class="w-4 h-4 text-stacksIndigo shrink-0 mt-0.5"></i>
-            <p>
-              <strong>Future Interface Demonstration:</strong> The card is not the MVP product; the infrastructure is the product. SpendBTC translates spending balances without requiring bank custody.
-            </p>
-          </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="lg:col-span-6 space-y-6">
-          <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="sliders" class="w-4 h-4 text-stacksCoral"></i> Card Controls
-            </h3>
-
-            <div class="flex items-center justify-between p-4 rounded-2xl bg-carbonMain border border-carbonBorder">
-              <div class="space-y-1">
-                <p class="text-sm font-semibold text-white">Card Lock / Freeze</p>
-                <p class="text-xs text-slate-400">Instantly block or allow card spending</p>
-              </div>
-              <button onclick="toggleCardFreeze()" id="btn-freeze-toggle" class="btn-stacks-secondary px-4 py-2 rounded-xl text-xs font-bold">
-                Freeze Card
+            <!-- Standard Fintech Action Buttons -->
+            <div class="flex flex-wrap items-center gap-3">
+              <button onclick="openPaymentSheet(50000)" class="btn-primary-action text-xs sm:text-sm">
+                <i data-lucide="send" class="w-4 h-4 text-black"></i> Make a Payment
+              </button>
+              <button onclick="openPaymentSheet(50000)" class="btn-secondary-action text-xs sm:text-sm">
+                <i data-lucide="zap" class="w-4 h-4 text-stacksCoral"></i> Quick ₦50,000 Demo
+              </button>
+              <button onclick="resetDemoData()" title="Reset Demo Data" class="btn-secondary-action p-3 text-slate-400 hover:text-white">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
               </button>
             </div>
 
-            <div class="p-4 rounded-2xl bg-carbonMain border border-carbonBorder space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-semibold text-white">Daily Spending Limit</span>
-                <span class="text-sm font-bold text-stacksCoral font-mono" id="card-limit-val">$500.00</span>
-              </div>
-              <input type="range" min="50" max="2500" step="50" value="500" id="limit-slider" oninput="updateDailyLimit(this.value)" class="w-full accent-stacksCoral cursor-pointer">
-            </div>
-
-            <div class="p-5 rounded-2xl bg-gradient-to-r from-stacksIndigo/10 to-stacksCoral/10 border border-stacksIndigo/20 space-y-3">
-              <p class="text-xs font-bold text-stacksCoral uppercase tracking-wider">Test Merchant Charge</p>
-              <p class="text-xs text-slate-300">Simulate an online merchant charging this virtual card backed by sBTC.</p>
-              <div class="flex gap-2">
-                <button onclick="simulateCardCharge(25.0, 'SpendBTC Test Merchant #1')" class="btn-stacks-primary flex-1 py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5">
-                  <i data-lucide="coffee" class="w-3.5 h-3.5 text-black"></i> Buy Coffee ($25)
-                </button>
-                <button onclick="simulateCardCharge(120.0, 'SpendBTC Test Merchant #2')" class="btn-stacks-secondary flex-1 py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5">
-                  <i data-lucide="server" class="w-3.5 h-3.5"></i> Test Order ($120)
-                </button>
-              </div>
-            </div>
-
           </div>
-        </div>
 
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 3: TRANSACTION LEDGER                  -->
-    <!-- ========================================== -->
-    <section id="tab-ledger" class="space-y-6 hidden">
-      <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-        
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i data-lucide="receipt" class="w-5 h-5 text-stacksCoral"></i> Transaction Ledger
-            </h2>
-            <p class="text-xs text-slate-400 mt-1">Audit log & Stacks settlement state records (PRD Section 8.6)</p>
-          </div>
-          <button onclick="loadTransactions()" class="btn-stacks-secondary px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-          </button>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="text-slate-400 uppercase tracking-wider border-b border-carbonBorder font-mono">
-              <tr>
-                <th class="pb-3 font-semibold">Tx ID / Time</th>
-                <th class="pb-3 font-semibold">Recipient</th>
-                <th class="pb-3 font-semibold">Fiat Value</th>
-                <th class="pb-3 font-semibold">Asset Amount</th>
-                <th class="pb-3 font-semibold">Route</th>
-                <th class="pb-3 font-semibold">Status</th>
-                <th class="pb-3 font-semibold text-right">Stacks TxID</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-carbonBorder font-sans text-slate-200" id="ledger-table-body">
-              <!-- Populated dynamically -->
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 4: DEVELOPER & PARTNER PORTAL          -->
-    <!-- ========================================== -->
-    <section id="tab-developer" class="space-y-8 hidden">
-      
-      <!-- Metrics Banner -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="stacks-panel rounded-2xl p-5 space-y-1">
-          <p class="text-xs text-slate-400">Total API Volume</p>
-          <p class="text-2xl font-bold text-white font-mono">$148,290.00</p>
-          <span class="text-[10px] text-emerald-400 font-semibold">↑ 18.4% this week</span>
-        </div>
-        <div class="stacks-panel rounded-2xl p-5 space-y-1">
-          <p class="text-xs text-slate-400">sBTC Settled</p>
-          <p class="text-2xl font-bold text-stacksCoral font-mono">1.9931 sBTC</p>
-          <span class="text-[10px] text-slate-400">Stacks testnet blocks</span>
-        </div>
-        <div class="stacks-panel rounded-2xl p-5 space-y-1">
-          <p class="text-xs text-slate-400">Success Rate</p>
-          <p class="text-2xl font-bold text-emerald-400 font-mono">99.4%</p>
-          <span class="text-[10px] text-slate-400">Avg execution: 2.1s</span>
-        </div>
-        <div class="stacks-panel rounded-2xl p-5 space-y-1">
-          <p class="text-xs text-slate-400">Webhooks</p>
-          <p class="text-2xl font-bold text-stacksIndigo font-mono">1 Endpoint</p>
-          <span class="text-[10px] text-emerald-400">Healthy (200 OK)</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        <!-- Left Column: API Keys & Webhook stream -->
-        <div class="lg:col-span-6 space-y-6">
-          
-          <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-            <div class="flex items-center justify-between">
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="key" class="w-4 h-4 text-stacksCoral"></i> API Credentials
-              </h3>
-              <button onclick="generateNewApiKey()" class="text-xs text-stacksCoral font-semibold hover:underline flex items-center gap-1">
-                + Generate Key
-              </button>
-            </div>
+          <!-- Reserve & Spending Breakdown Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-borderSubtle">
             
-            <div class="space-y-3" id="api-keys-list">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-
-          <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <i data-lucide="webhook" class="w-4 h-4 text-stacksIndigo"></i> Webhook Event Stream
-                </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Dispatches signed events to partner servers</p>
+            <div class="p-4 rounded-xl bg-bgApp/60 border border-borderSubtle flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-extrabold text-base">₿</div>
+                <div>
+                  <p class="text-[11px] text-slate-400 font-medium">Bitcoin (L1 Reserve)</p>
+                  <p class="text-sm font-bold text-white font-mono" id="breakdown-btc">0.01800000 BTC</p>
+                </div>
               </div>
-              <button onclick="sendTestWebhookPing()" class="btn-stacks-secondary px-3 py-1.5 rounded-xl text-xs font-semibold">
-                Test Ping
-              </button>
+              <span class="text-xs text-slate-400 font-mono" id="breakdown-btc-usd">≈ $1,339.20</span>
             </div>
 
-            <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="webhook-logs-list">
-              <!-- Rendered dynamically -->
+            <div class="p-4 rounded-xl bg-bgApp/60 border border-borderSubtle flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-stacksCoral/10 border border-stacksCoral/30 flex items-center justify-center text-stacksCoral font-extrabold text-base">s₿</div>
+                <div>
+                  <p class="text-[11px] text-slate-400 font-medium">sBTC (Stacks L2 Rails)</p>
+                  <p class="text-sm font-bold text-white font-mono" id="breakdown-sbtc">0.00600000 sBTC</p>
+                </div>
+              </div>
+              <span class="status-pill pill-coral font-mono" id="breakdown-sbtc-usd">≈ $446.40</span>
             </div>
+
+            <div class="p-4 rounded-xl bg-bgApp/60 border border-borderSubtle flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-[11px] text-slate-400 font-medium">Daily Spend Limit</p>
+                  <p class="text-sm font-bold text-white font-mono">$5,000.00 USD</p>
+                </div>
+              </div>
+              <span class="status-pill pill-green">100% Available</span>
+            </div>
+
           </div>
-
         </div>
 
-        <!-- Right Column: Interactive API Explorer -->
-        <div class="lg:col-span-6 space-y-6">
-          <div class="stacks-panel rounded-3xl p-6 sm:p-8 space-y-6">
-            <div class="flex items-center justify-between">
+        <!-- Activity Feed Panel -->
+        <div class="fintech-panel p-6 sm:p-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i data-lucide="activity" class="w-5 h-5 text-stacksCoral"></i>
+              <h2 class="text-base font-bold text-white">Recent Spending Activity</h2>
+            </div>
+            <button onclick="switchTab('ledger')" class="text-xs text-stacksCoral font-semibold hover:underline flex items-center gap-1">
+              View all transactions <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <div class="divide-y divide-borderSubtle" id="recent-activity-list">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 2: VIRTUAL CARD PROTOTYPE                                 -->
+      <!-- ============================================================== -->
+      <section id="tab-card" class="space-y-8 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <!-- Virtual Card Column -->
+          <div class="lg:col-span-6 space-y-6">
+            <div class="neo-card p-8 text-white aspect-[1.586/1] flex flex-col justify-between shadow-2xl relative" id="virtual-card-box">
+              
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-stacksCoral flex items-center justify-center">
+                    <i data-lucide="zap" class="w-4 h-4 text-black fill-black"></i>
+                  </div>
+                  <span class="font-extrabold tracking-tight text-lg">Spend<span class="text-stacksCoral">BTC</span></span>
+                </div>
+                <span class="status-pill pill-coral">sBTC Debit</span>
+              </div>
+
+              <div class="flex items-center gap-4 my-2">
+                <div class="card-emv-chip"></div>
+                <i data-lucide="wifi" class="w-6 h-6 text-slate-400 rotate-90"></i>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <p class="font-mono text-xl sm:text-2xl tracking-widest font-semibold drop-shadow" id="card-display-number">4532 •••• •••• 4901</p>
+                  <button onclick="toggleCardNumberVisibility()" class="text-slate-400 hover:text-white p-1">
+                    <i data-lucide="eye" id="card-eye-icon" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-300 font-mono pt-2">
+                  <div>
+                    <span class="text-[10px] uppercase text-slate-400 block">Cardholder</span>
+                    <span class="font-bold text-white uppercase tracking-wider" id="card-holder-name">VITTORIO AFFOLABI</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] uppercase text-slate-400 block">Expires</span>
+                    <span class="font-bold text-white" id="card-expiry">09/28</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] uppercase text-slate-400 block">CVV</span>
+                    <span class="font-bold text-white" id="card-cvv">•••</span>
+                  </div>
+                  <div class="text-right font-black italic text-lg text-slate-200">
+                    VISA
+                  </div>
+                </div>
+              </div>
+
+              <!-- Frozen Frosted Glass Overlay -->
+              <div id="card-frozen-overlay" class="absolute inset-0 bg-blue-950/80 backdrop-blur-md flex flex-col items-center justify-center gap-2 hidden">
+                <i data-lucide="snowflake" class="w-12 h-12 text-blue-300 animate-spin" style="animation-duration: 10s;"></i>
+                <p class="text-lg font-bold text-white">Card Locked</p>
+                <p class="text-xs text-blue-200">All debit authorizations are temporarily blocked</p>
+              </div>
+            </div>
+
+            <!-- Card Clarification Notice -->
+            <div class="p-4 rounded-xl bg-bgSurface border border-borderSubtle flex items-start gap-3 text-xs text-slate-400">
+              <i data-lucide="info" class="w-4 h-4 text-stacksIndigo shrink-0 mt-0.5"></i>
+              <p>
+                <strong>Future Interface Concept:</strong> SpendBTC provides the spending orchestration infrastructure. This virtual card demonstrates how sBTC balances could back card authorizations without requiring bank custody.
+              </p>
+            </div>
+          </div>
+
+          <!-- Card Management Controls -->
+          <div class="lg:col-span-6 space-y-6">
+            <div class="fintech-panel p-6 sm:p-8 space-y-6">
               <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Interactive API Playground
+                <i data-lucide="sliders" class="w-4 h-4 text-stacksCoral"></i> Card Security & Limits
               </h3>
-              <span class="text-xs font-mono text-slate-400">POST /api/v1/payments/quote</span>
-            </div>
 
-            <div class="space-y-4">
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Amount</label>
-                  <input type="number" id="play-amount" value="50000" class="w-full bg-carbonMain border border-carbonBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-stacksCoral font-mono">
+              <div class="flex items-center justify-between p-4 rounded-xl bg-bgCard border border-borderSubtle">
+                <div class="space-y-0.5">
+                  <p class="text-sm font-semibold text-white">Freeze / Lock Card</p>
+                  <p class="text-xs text-slate-400">Instantly prevent charges</p>
                 </div>
-                <div>
-                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Currency</label>
-                  <select id="play-currency" class="w-full bg-carbonMain border border-carbonBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-stacksCoral">
-                    <option value="NGN">NGN (₦)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="flex gap-2">
-                <button onclick="executePlaygroundQuote()" class="btn-stacks-primary flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5">
-                  <i data-lucide="play" class="w-3.5 h-3.5 fill-black"></i> Send Request
-                </button>
-                <button onclick="copyCurlSnippet()" class="btn-stacks-secondary px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-1.5">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> cURL
+                <button onclick="toggleCardFreeze()" id="btn-freeze-toggle" class="btn-secondary-action px-4 py-2 rounded-xl text-xs font-bold">
+                  Freeze Card
                 </button>
               </div>
 
-              <div>
-                <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Response</label>
-                <pre id="playground-response" class="bg-carbonMain p-4 rounded-2xl border border-carbonBorder text-[11px] font-mono text-emerald-400 max-h-64 overflow-y-auto leading-relaxed">{
-  "message": "Click 'Send Request' to test live quote calculation"
-}</pre>
+              <div class="p-4 rounded-xl bg-bgCard border border-borderSubtle space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-white">Daily Spending Limit</span>
+                  <span class="text-sm font-bold text-stacksCoral font-mono" id="card-limit-val">$500.00</span>
+                </div>
+                <input type="range" min="50" max="2500" step="50" value="500" id="limit-slider" oninput="updateDailyLimit(this.value)" class="w-full accent-stacksCoral cursor-pointer">
               </div>
-            </div>
 
+              <!-- Test Merchant Charge Simulator -->
+              <div class="p-5 rounded-2xl bg-gradient-to-r from-stacksIndigo/10 to-stacksCoral/10 border border-stacksIndigo/20 space-y-3">
+                <p class="text-xs font-bold text-stacksCoral uppercase tracking-wider">Test Merchant Charge</p>
+                <p class="text-xs text-slate-300">Simulate an online merchant charging this virtual card backed by sBTC.</p>
+                <div class="flex gap-2">
+                  <button onclick="simulateCardCharge(25.0, 'SpendBTC Test Merchant #1')" class="btn-primary-action flex-1 py-2.5 px-3 text-xs">
+                    <i data-lucide="coffee" class="w-3.5 h-3.5 text-black"></i> Buy Coffee ($25)
+                  </button>
+                  <button onclick="simulateCardCharge(120.0, 'SpendBTC Test Merchant #2')" class="btn-secondary-action flex-1 py-2.5 px-3 text-xs">
+                    <i data-lucide="server" class="w-3.5 h-3.5"></i> Test Order ($120)
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 3: TRANSACTION LEDGER                                     -->
+      <!-- ============================================================== -->
+      <section id="tab-ledger" class="space-y-6 hidden">
+        <div class="fintech-panel p-6 sm:p-8 space-y-6">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i data-lucide="receipt" class="w-5 h-5 text-stacksCoral"></i> Immutable Transaction Ledger
+              </h2>
+              <p class="text-xs text-slate-400 mt-1">Audit log & Stacks settlement state records (PRD Section 8.6)</p>
+            </div>
+            <button onclick="loadTransactions()" class="btn-secondary-action px-3.5 py-1.5 text-xs">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Ledger
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 uppercase tracking-wider border-b border-borderSubtle font-mono">
+                <tr>
+                  <th class="pb-3 font-semibold">Tx ID / Time</th>
+                  <th class="pb-3 font-semibold">Recipient</th>
+                  <th class="pb-3 font-semibold">Fiat Value</th>
+                  <th class="pb-3 font-semibold">Asset Amount</th>
+                  <th class="pb-3 font-semibold">Route</th>
+                  <th class="pb-3 font-semibold">Status</th>
+                  <th class="pb-3 font-semibold text-right">Stacks TxID</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-borderSubtle font-sans text-slate-200" id="ledger-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: DEVELOPER & PARTNER PORTAL                             -->
+      <!-- ============================================================== -->
+      <section id="tab-developer" class="space-y-8 hidden">
+        
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="fintech-panel p-5 space-y-1">
+            <p class="text-xs text-slate-400">Total API Volume</p>
+            <p class="text-2xl font-bold text-white font-mono">$148,290.00</p>
+            <span class="text-[10px] text-emerald-400 font-semibold font-mono">↑ 18.4% volume</span>
+          </div>
+          <div class="fintech-panel p-5 space-y-1">
+            <p class="text-xs text-slate-400">sBTC Settled</p>
+            <p class="text-2xl font-bold text-stacksCoral font-mono">1.9931 sBTC</p>
+            <span class="text-[10px] text-slate-400">Stacks testnet blocks</span>
+          </div>
+          <div class="fintech-panel p-5 space-y-1">
+            <p class="text-xs text-slate-400">Settlement Success Rate</p>
+            <p class="text-2xl font-bold text-emerald-400 font-mono">99.4%</p>
+            <span class="text-[10px] text-slate-400">Avg execution: 2.1s</span>
+          </div>
+          <div class="fintech-panel p-5 space-y-1">
+            <p class="text-xs text-slate-400">Active Webhooks</p>
+            <p class="text-2xl font-bold text-stacksIndigo font-mono">1 Endpoint</p>
+            <span class="status-pill pill-green text-[10px]">Healthy (200 OK)</span>
           </div>
         </div>
 
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ========================================== -->
-  <!-- MODAL: WALLET CONNECTION (LEATHER / XVERSE) -->
-  <!-- ========================================== -->
-  <div id="wallet-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="stacks-panel rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 relative border border-carbonBorder shadow-2xl">
-      <button onclick="closeWalletModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
-      <div class="space-y-1">
-        <span class="stacks-badge stacks-badge-indigo">Stacks Testnet</span>
-        <h3 class="text-xl font-bold text-white">Connect Stacks Wallet</h3>
-        <p class="text-xs text-slate-400">Select your preferred Stacks wallet to spend sBTC.</p>
-      </div>
-
-      <div class="space-y-3">
-        <!-- Leather Wallet -->
-        <button onclick="connectWallet('leather')" class="w-full p-4 rounded-2xl bg-carbonMain border border-carbonBorder hover:border-stacksCoral flex items-center justify-between transition-all group">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 font-black">
-              L
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <!-- Left: API Keys & Webhooks -->
+          <div class="lg:col-span-6 space-y-6">
+            
+            <div class="fintech-panel p-6 sm:p-8 space-y-6">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="key" class="w-4 h-4 text-stacksCoral"></i> API Credentials
+                </h3>
+                <button onclick="generateNewApiKey()" class="text-xs text-stacksCoral font-semibold hover:underline flex items-center gap-1">
+                  + Generate Key
+                </button>
+              </div>
+              <div class="space-y-3" id="api-keys-list">
+                <!-- Rendered dynamically -->
+              </div>
             </div>
-            <div class="text-left">
-              <p class="text-sm font-bold text-white group-hover:text-stacksCoral transition-colors">Leather Wallet</p>
-              <p class="text-[11px] text-slate-400">Browser extension (formerly Hiro)</p>
+
+            <div class="fintech-panel p-6 sm:p-8 space-y-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="webhook" class="w-4 h-4 text-stacksIndigo"></i> Webhook Event Stream
+                  </h3>
+                  <p class="text-xs text-slate-400 mt-0.5">Signed webhook payloads dispatched to partner servers</p>
+                </div>
+                <button onclick="sendTestWebhookPing()" class="btn-secondary-action px-3 py-1.5 text-xs">
+                  Test Ping
+                </button>
+              </div>
+              <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="webhook-logs-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right: Interactive API Workbench -->
+          <div class="lg:col-span-6 space-y-6">
+            <div class="fintech-panel p-6 sm:p-8 space-y-6">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> API Workbench
+                </h3>
+                <div class="flex items-center gap-1 bg-bgCard p-1 rounded-lg border border-borderSubtle text-[11px] font-mono">
+                  <button onclick="switchSnippetLang('curl')" id="btn-lang-curl" class="px-2 py-0.5 rounded bg-bgSurface text-white font-bold">cURL</button>
+                  <button onclick="switchSnippetLang('node')" id="btn-lang-node" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Node.js</button>
+                  <button onclick="switchSnippetLang('python')" id="btn-lang-python" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">Python</button>
+                </div>
+              </div>
+
+              <!-- Interactive Controls -->
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Amount</label>
+                    <input type="number" id="play-amount" value="50000" class="w-full bg-bgApp border border-borderSubtle rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-stacksCoral font-mono">
+                  </div>
+                  <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Currency</label>
+                    <select id="play-currency" class="w-full bg-bgApp border border-borderSubtle rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-stacksCoral font-mono">
+                      <option value="NGN">NGN (₦)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex gap-2">
+                  <button onclick="executePlaygroundQuote()" class="btn-primary-action flex-1 py-2 text-xs">
+                    <i data-lucide="play" class="w-3.5 h-3.5 fill-black"></i> Send Live Request
+                  </button>
+                  <button onclick="copyCurrentSnippet()" class="btn-secondary-action px-3 py-2 text-xs font-mono">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code
+                  </button>
+                </div>
+
+                <div>
+                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Code Snippet</label>
+                  <pre id="playground-code-snippet" class="bg-bgApp p-3 rounded-xl border border-borderSubtle text-[11px] font-mono text-slate-300 max-h-32 overflow-y-auto"></pre>
+                </div>
+
+                <div>
+                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Live Response (200 OK)</label>
+                  <pre id="playground-response" class="bg-bgApp p-4 rounded-xl border border-borderSubtle text-[11px] font-mono text-emerald-400 max-h-48 overflow-y-auto leading-relaxed">{
+  "message": "Click 'Send Live Request' to execute API call"
+}</pre>
+                </div>
+              </div>
+
             </div>
           </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white"></i>
-        </button>
 
-        <!-- Xverse Wallet -->
-        <button onclick="connectWallet('xverse')" class="w-full p-4 rounded-2xl bg-carbonMain border border-carbonBorder hover:border-stacksCoral flex items-center justify-between transition-all group">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-black">
-              X
-            </div>
-            <div class="text-left">
-              <p class="text-sm font-bold text-white group-hover:text-stacksCoral transition-colors">Xverse Wallet</p>
-              <p class="text-[11px] text-slate-400">Bitcoin & Stacks Web3 Wallet</p>
-            </div>
-          </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white"></i>
-        </button>
+        </div>
+      </section>
 
-        <!-- Demo Testnet Mode -->
-        <button onclick="connectWallet('demo')" class="w-full p-4 rounded-2xl bg-carbonMain border border-carbonBorder hover:border-emerald-500 flex items-center justify-between transition-all group">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">
-              ⚡
-            </div>
-            <div class="text-left">
-              <p class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Demo Testnet Mode</p>
-              <p class="text-[11px] text-slate-400">Instant test wallet with 0.006 sBTC</p>
-            </div>
-          </div>
-          <span class="stacks-badge stacks-badge-green">Instant</span>
-        </button>
-      </div>
+    </main>
 
-      <div class="p-3.5 rounded-xl bg-carbonMain/60 border border-carbonBorder text-[11px] text-slate-400">
-        Connected Address: <span class="text-white font-mono" id="modal-connected-address">SP2J...V9EJ7</span>
-      </div>
-    </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: PAYMENT FLOW A (PRD SECTION 9)      -->
-  <!-- ========================================== -->
-  <div id="payment-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="stacks-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 relative border border-carbonBorder shadow-2xl">
+  <!-- ============================================================== -->
+  <!-- MODAL: PAYMENT SHEET (Apple Pay / Revolut Caliber)             -->
+  <!-- ============================================================== -->
+  <div id="payment-sheet-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="fintech-panel max-w-lg w-full p-6 sm:p-8 space-y-6 relative border border-borderSubtle shadow-2xl bg-bgSurface">
       
-      <button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
+      <button onclick="closePaymentSheet()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
-      <!-- Step 1: Input Amount -->
+      <!-- Step 1: Input Amount & Destination -->
       <div id="payment-step-1" class="space-y-6">
         <div class="space-y-1">
-          <span class="stacks-badge stacks-badge-coral">Step 1 of 3</span>
+          <span class="status-pill pill-coral">Step 1 of 3</span>
           <h3 class="text-xl font-bold text-white">Make a Payment</h3>
-          <p class="text-xs text-slate-400">Pay in local fiat while settling in sBTC.</p>
+          <p class="text-xs text-slate-400">Spend sBTC transparently in local fiat currency.</p>
         </div>
 
         <div class="space-y-4">
           <div>
             <label class="text-xs text-slate-400 font-medium block mb-1.5">Payment Amount</label>
             <div class="relative">
-              <input type="number" id="pay-input-amount" value="50000" class="w-full bg-carbonMain border border-carbonBorder rounded-2xl pl-4 pr-24 py-3.5 text-lg font-bold text-white focus:outline-none focus:border-stacksCoral font-mono">
+              <input type="number" id="pay-sheet-amount" value="50000" class="w-full bg-bgApp border border-borderSubtle rounded-2xl pl-4 pr-24 py-3.5 text-2xl font-bold text-white focus:outline-none focus:border-stacksCoral font-mono">
               <div class="absolute right-2 top-2 bottom-2">
-                <select id="pay-input-currency" class="h-full bg-carbonCard text-white text-xs font-semibold rounded-xl px-2 border border-carbonBorder focus:outline-none">
+                <select id="pay-sheet-currency" class="h-full bg-bgCard text-white text-xs font-semibold rounded-xl px-2.5 border border-borderSubtle focus:outline-none font-mono">
                   <option value="NGN">NGN (₦)</option>
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
+                  <option value="KES">KES (KSh)</option>
                 </select>
               </div>
+            </div>
+
+            <!-- Quick Amount Increment Pills -->
+            <div class="flex items-center gap-2 mt-2.5 text-xs font-mono">
+              <button onclick="addAmountIncrement(10000)" class="px-2.5 py-1 rounded-lg bg-bgCard border border-borderSubtle hover:border-slate-500 text-slate-300 transition-all">+10k</button>
+              <button onclick="addAmountIncrement(50000)" class="px-2.5 py-1 rounded-lg bg-bgCard border border-borderSubtle hover:border-slate-500 text-slate-300 transition-all">+50k</button>
+              <button onclick="addAmountIncrement(100000)" class="px-2.5 py-1 rounded-lg bg-bgCard border border-borderSubtle hover:border-slate-500 text-slate-300 transition-all">+100k</button>
+              <button onclick="setAmountExact(50000)" class="px-2.5 py-1 rounded-lg bg-stacksCoral/10 border border-stacksCoral/30 text-stacksCoral font-bold">₦50,000</button>
             </div>
           </div>
 
           <div>
             <label class="text-xs text-slate-400 font-medium block mb-1.5">Recipient / Destination</label>
-            <input type="text" id="pay-input-recipient" value="SpendBTC Test Merchant" class="w-full bg-carbonMain border border-carbonBorder rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-stacksCoral">
+            <input type="text" id="pay-sheet-recipient" value="SpendBTC Test Merchant" class="w-full bg-bgApp border border-borderSubtle rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-stacksCoral">
           </div>
         </div>
 
-        <button onclick="requestPaymentQuote()" class="btn-stacks-primary w-full py-3.5 rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2">
-          <span>Get Quote & Compare Routes</span> <i data-lucide="arrow-right" class="w-4 h-4 text-black"></i>
+        <button onclick="requestPaymentQuote()" class="btn-primary-action w-full py-3.5 text-xs sm:text-sm">
+          <span>Calculate Quote & Select Route</span> <i data-lucide="arrow-right" class="w-4 h-4 text-black"></i>
         </button>
       </div>
 
-      <!-- Step 2: Quote Breakdown & 30s Countdown -->
+      <!-- Step 2: Live Quote & Route Comparison -->
       <div id="payment-step-2" class="space-y-6 hidden">
         <div class="flex items-center justify-between">
           <div class="space-y-1">
-            <span class="stacks-badge stacks-badge-coral">Step 2 of 3</span>
+            <span class="status-pill pill-coral">Step 2 of 3</span>
             <h3 class="text-xl font-bold text-white">Payment Quote</h3>
           </div>
           <div class="text-right">
@@ -588,9 +616,9 @@
           </div>
         </div>
 
-        <div class="p-5 rounded-2xl bg-carbonMain border border-carbonBorder text-center space-y-1">
-          <p class="text-xs text-slate-400 uppercase font-medium">You are paying</p>
-          <p class="text-2xl font-extrabold text-white font-mono" id="quote-fiat-display">₦50,000</p>
+        <div class="p-5 rounded-2xl bg-bgApp border border-borderSubtle text-center space-y-1">
+          <p class="text-xs text-slate-400 uppercase font-medium">Paying Fiat Value</p>
+          <p class="text-3xl font-black text-white font-mono" id="quote-fiat-display">₦50,000</p>
           <p class="text-sm font-bold text-stacksCoral font-mono" id="quote-sbtc-display">≈ 0.00042000 sBTC</p>
         </div>
 
@@ -601,7 +629,7 @@
           </div>
         </div>
 
-        <div class="p-4 rounded-2xl bg-carbonMain/60 border border-carbonBorder text-xs space-y-2">
+        <div class="p-4 rounded-xl bg-bgApp/60 border border-borderSubtle text-xs space-y-2">
           <div class="flex justify-between text-slate-400">
             <span>Stacks Network Fee:</span>
             <span class="font-mono text-slate-200" id="quote-fee-network">0.00000100 sBTC</span>
@@ -610,70 +638,129 @@
             <span>SpendBTC Protocol Fee:</span>
             <span class="font-mono text-slate-200" id="quote-fee-spendbtc">0.00000067 sBTC</span>
           </div>
-          <div class="flex justify-between font-bold text-white pt-2 border-t border-carbonBorder">
-            <span>Total sBTC Required:</span>
+          <div class="flex justify-between font-bold text-white pt-2 border-t border-borderSubtle">
+            <span>Total sBTC Debit:</span>
             <span class="font-mono text-stacksCoral" id="quote-fee-total">0.00042167 sBTC</span>
           </div>
         </div>
 
         <div class="flex gap-3">
-          <button onclick="showStep1()" class="btn-stacks-secondary py-3 px-4 rounded-2xl text-xs font-semibold">Back</button>
-          <button onclick="authorizePayment()" class="btn-stacks-primary flex-1 py-3.5 rounded-2xl text-xs sm:text-sm">
-            Confirm & Sign Transaction
+          <button onclick="showStep1()" class="btn-secondary-action py-3 px-4 text-xs">Back</button>
+          <button onclick="authorizePayment()" class="btn-primary-action flex-1 py-3.5 text-xs sm:text-sm">
+            Confirm & Sign Payment
           </button>
         </div>
       </div>
 
-      <!-- Step 3: Real-time Settlement Progress -->
+      <!-- Step 3: Real-Time Settlement Timeline & Receipt -->
       <div id="payment-step-3" class="space-y-6 hidden">
         <div class="text-center space-y-2">
           <div id="settlement-icon" class="w-16 h-16 rounded-full bg-stacksCoral/20 border border-stacksCoral/40 mx-auto flex items-center justify-center text-stacksCoral animate-pulse">
             <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
           </div>
-          <h3 class="text-xl font-bold text-white" id="settlement-title">Processing Payment...</h3>
-          <p class="text-xs text-slate-400" id="settlement-desc">Broadcasting contract call to Stacks sBTC settlement layer</p>
+          <h3 class="text-xl font-bold text-white" id="settlement-title">Processing Settlement...</h3>
+          <p class="text-xs text-slate-400" id="settlement-desc">Broadcasting contract call to Stacks settlement layer</p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-carbonMain border border-carbonBorder space-y-3">
+        <div class="p-4 rounded-xl bg-bgApp border border-borderSubtle space-y-3">
           <div class="flex items-center justify-between text-[11px] font-mono">
             <span id="st-quoted" class="text-emerald-400 font-bold">1. QUOTED ✓</span>
             <span id="st-auth" class="text-emerald-400 font-bold">2. AUTHORIZED ✓</span>
             <span id="st-proc" class="text-stacksCoral font-bold animate-pulse">3. PROCESSING...</span>
             <span id="st-conf" class="text-slate-500">4. CONFIRMED</span>
           </div>
-          <div class="w-full bg-carbonSurface h-2 rounded-full overflow-hidden">
+          <div class="w-full bg-bgCard h-2 rounded-full overflow-hidden">
             <div id="settlement-progress-bar" class="bg-gradient-to-r from-stacksOrange to-stacksIndigo h-full w-2/3 transition-all duration-700"></div>
           </div>
         </div>
 
-        <div id="settlement-proof" class="p-4 rounded-2xl bg-carbonMain/60 border border-carbonBorder text-xs space-y-2 hidden">
+        <div id="settlement-proof" class="p-4 rounded-xl bg-bgApp/60 border border-borderSubtle text-xs space-y-2 hidden font-mono">
           <div class="flex justify-between text-slate-400">
             <span>Recipient:</span>
             <span class="font-semibold text-white" id="proof-recipient">-</span>
           </div>
           <div class="flex justify-between text-slate-400">
-            <span>Settled Amount:</span>
-            <span class="font-bold text-emerald-400 font-mono" id="proof-amount">-</span>
+            <span>Settled Value:</span>
+            <span class="font-bold text-emerald-400" id="proof-amount">-</span>
           </div>
           <div class="flex justify-between text-slate-400">
             <span>Stacks TxID:</span>
-            <a href="#" target="_blank" id="proof-explorer-link" class="font-mono text-stacksCoral hover:underline truncate max-w-[200px]">0x...</a>
+            <a href="#" target="_blank" id="proof-explorer-link" class="text-stacksCoral hover:underline truncate max-w-[200px]">0x...</a>
           </div>
         </div>
 
-        <button id="btn-settlement-done" onclick="closePaymentModal()" class="btn-stacks-primary w-full py-3.5 rounded-2xl text-xs sm:text-sm hidden">
-          Done
+        <button id="btn-settlement-done" onclick="closePaymentSheet()" class="btn-primary-action w-full py-3.5 text-xs sm:text-sm hidden">
+          Done & Close Receipt
         </button>
       </div>
 
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: ARCHITECTURE WALKTHROUGH TOUR       -->
-  <!-- ========================================== -->
+  <!-- ============================================================== -->
+  <!-- MODAL: WALLET SELECTION (LEATHER / XVERSE / DEMO)              -->
+  <!-- ============================================================== -->
+  <div id="wallet-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="fintech-panel max-w-md w-full p-6 sm:p-8 space-y-6 relative border border-borderSubtle shadow-2xl bg-bgSurface">
+      <button onclick="closeWalletModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="space-y-1">
+        <span class="status-pill pill-indigo">Stacks Wallet</span>
+        <h3 class="text-xl font-bold text-white">Connect Wallet</h3>
+        <p class="text-xs text-slate-400">Select your Stacks wallet to spend sBTC.</p>
+      </div>
+
+      <div class="space-y-3">
+        <!-- Leather -->
+        <button onclick="connectWallet('leather')" class="w-full p-4 rounded-xl bg-bgApp border border-borderSubtle hover:border-stacksCoral flex items-center justify-between transition-all group">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 font-black">L</div>
+            <div class="text-left">
+              <p class="text-sm font-bold text-white group-hover:text-stacksCoral transition-colors">Leather Wallet</p>
+              <p class="text-[11px] text-slate-400">Browser extension</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white"></i>
+        </button>
+
+        <!-- Xverse -->
+        <button onclick="connectWallet('xverse')" class="w-full p-4 rounded-xl bg-bgApp border border-borderSubtle hover:border-stacksCoral flex items-center justify-between transition-all group">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-black">X</div>
+            <div class="text-left">
+              <p class="text-sm font-bold text-white group-hover:text-stacksCoral transition-colors">Xverse Wallet</p>
+              <p class="text-[11px] text-slate-400">Bitcoin & Stacks Web3 Wallet</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white"></i>
+        </button>
+
+        <!-- Demo Mode -->
+        <button onclick="connectWallet('demo')" class="w-full p-4 rounded-xl bg-bgApp border border-borderSubtle hover:border-emerald-500 flex items-center justify-between transition-all group">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">⚡</div>
+            <div class="text-left">
+              <p class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Demo Testnet Mode</p>
+              <p class="text-[11px] text-slate-400">Instant test wallet with 0.006 sBTC</p>
+            </div>
+          </div>
+          <span class="status-pill pill-green">Active</span>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-bgApp/60 border border-borderSubtle text-[11px] text-slate-400">
+        Connected Principal: <span class="text-white font-mono" id="modal-connected-address">SP2J...V9EJ7</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: ARCHITECTURE TOUR                                       -->
+  <!-- ============================================================== -->
   <div id="demo-tour-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="stacks-panel rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 border border-stacksCoral/40 shadow-2xl relative">
+    <div class="fintech-panel max-w-xl w-full p-6 sm:p-8 space-y-6 border border-stacksCoral/40 shadow-2xl relative bg-bgSurface">
       <button onclick="closeDemoStory()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
@@ -683,16 +770,16 @@
           ⚡
         </div>
         <div>
-          <span class="stacks-badge stacks-badge-coral">Product Architecture Walkthrough</span>
+          <span class="status-pill pill-coral">Product Architecture Walkthrough</span>
           <h3 class="text-xl font-extrabold text-white mt-1" id="tour-scene-title">Scene 1: Available to Spend</h3>
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-carbonMain border border-carbonBorder space-y-3">
+      <div class="p-5 rounded-xl bg-bgApp border border-borderSubtle space-y-3">
         <p class="text-sm text-slate-300 leading-relaxed" id="tour-scene-narrative">
           User opens SpendBTC. Instead of seeing raw UTXOs or Stacks gas units, they see familiar available spending power: <strong>$1,284.62</strong> backed transparently by 0.018 BTC and 0.006 sBTC.
         </p>
-        <div class="p-3 rounded-xl bg-carbonSurface border border-carbonBorder text-xs text-stacksCoral font-mono" id="tour-scene-badge">
+        <div class="p-3 rounded-lg bg-bgCard border border-borderSubtle text-xs text-stacksCoral font-mono" id="tour-scene-badge">
           PRD Section 21 • Scene 1
         </div>
       </div>
@@ -700,33 +787,16 @@
       <div class="flex items-center justify-between pt-2">
         <span class="text-xs text-slate-400" id="tour-step-counter">Scene 1 of 7</span>
         <div class="flex gap-2">
-          <button onclick="prevTourStep()" id="tour-btn-prev" class="btn-stacks-secondary px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40" disabled>
+          <button onclick="prevTourStep()" id="tour-btn-prev" class="btn-secondary-action px-4 py-2 text-xs disabled:opacity-40" disabled>
             Previous
           </button>
-          <button onclick="nextTourStep()" id="tour-btn-next" class="btn-stacks-primary px-5 py-2 rounded-xl text-xs">
+          <button onclick="nextTourStep()" id="tour-btn-next" class="btn-primary-action px-5 py-2 text-xs">
             Next Scene →
           </button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- FOOTER -->
-  <footer class="border-t border-carbonBorder py-6 mt-auto bg-carbonMain/40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-      <div class="flex items-center gap-2">
-        <span class="font-bold text-white">SpendBTC</span>
-        <span>— The spending layer for Bitcoin (Stacks & sBTC Ecosystem)</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="stacks-badge stacks-badge-indigo">Prototype v1.0</span>
-        <span>•</span>
-        <a href="https://github.com/affolabi/SpendBTC" target="_blank" class="hover:text-white transition-colors flex items-center gap-1">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub
-        </a>
-      </div>
-    </div>
-  </footer>
 
   <script src="/app.js"></script>
 </body>
