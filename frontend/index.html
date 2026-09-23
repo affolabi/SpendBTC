@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendBTC — The Spending Layer for Bitcoin (Stacks & sBTC)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brandOrange: '#F7931A',
+            brandPurple: '#5546FF',
+            darkMain: '#0B0E14',
+            darkCard: '#151922',
+            darkBorder: '#262D3D'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-darkMain text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brandOrange selection:text-black">
+
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-darkBorder bg-darkCard/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brandOrange to-brandPurple flex items-center justify-center shadow-lg shadow-brandOrange/20">
+          <i data-lucide="zap" class="w-5 h-5 text-white fill-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-white">Spend<span class="text-brandOrange">BTC</span></span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brandPurple/20 text-brandPurple border border-brandPurple/30">sBTC L2</span>
+          </div>
+          <p class="text-xs text-slate-400">The Spending Layer for Bitcoin</p>
+        </div>
+      </div>
+
+      <!-- Center Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-darkMain/80 p-1 rounded-xl border border-darkBorder text-sm">
+        <button onclick="switchTab('consumer')" id="nav-consumer" class="px-4 py-1.5 rounded-lg font-medium transition-all bg-darkCard text-white shadow-sm flex items-center gap-2">
+          <i data-lucide="wallet" class="w-4 h-4 text-brandOrange"></i> Spending App
+        </button>
+        <button onclick="switchTab('card')" id="nav-card" class="px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          <i data-lucide="credit-card" class="w-4 h-4"></i> Virtual Card
+        </button>
+        <button onclick="switchTab('ledger')" id="nav-ledger" class="px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          <i data-lucide="receipt" class="w-4 h-4"></i> Transactions
+        </button>
+        <button onclick="switchTab('developer')" id="nav-developer" class="px-4 py-1.5 rounded-lg font-medium transition-all text-slate-400 hover:text-white flex items-center gap-2">
+          <i data-lucide="code-2" class="w-4 h-4 text-brandPurple"></i> Developer Portal
+        </button>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Guided Demo Story Button (PRD Section 21) -->
+        <button onclick="startDemoStory()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-brandOrange/20 to-brandPurple/20 border border-brandOrange/40 text-xs font-semibold text-brandOrange hover:bg-brandOrange/30 transition-all shadow-sm">
+          <i data-lucide="play" class="w-3.5 h-3.5 fill-brandOrange"></i> Hackathon Story
+        </button>
+
+        <!-- Connected Wallet Badge (Simulating Leather / Xverse) -->
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-darkMain border border-darkBorder text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-slate-300 font-mono" id="topbar-address">SP2J...V9EJ7</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: CONSUMER SPENDING APP               -->
+    <!-- ========================================== -->
+    <section id="tab-consumer" class="space-y-8">
+      
+      <!-- Balance Hero Card (PRD Section 15) -->
+      <div class="glass-panel rounded-3xl p-6 sm:p-8 glow-orange relative overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-brandOrange/10 blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-12 -bottom-12 w-64 h-64 rounded-full bg-brandPurple/10 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+              <span>Available to Spend (Fiat Abstraction)</span>
+            </div>
+            <div class="flex items-baseline gap-3">
+              <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight" id="hero-fiat-balance">$1,284.62</h1>
+              <span class="text-slate-400 text-lg font-medium" id="hero-local-equiv">≈ ₦2,055,392</span>
+            </div>
+            <p class="text-xs text-slate-400">Underlying balances held in native Bitcoin & Stacks sBTC</p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="openPaymentModal(50000, 'NGN')" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-brandOrange to-amber-500 hover:from-amber-500 hover:to-brandOrange text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-brandOrange/25 transition-all transform hover:scale-105">
+              <i data-lucide="arrow-up-right" class="w-5 h-5"></i> Pay ₦50,000 (Demo)
+            </button>
+            <button onclick="openPaymentModal()" class="px-5 py-3.5 rounded-2xl bg-darkCard hover:bg-darkBorder border border-darkBorder text-white font-semibold text-sm flex items-center gap-2 transition-all">
+              <i data-lucide="send" class="w-4 h-4"></i> Custom Pay
+            </button>
+            <button onclick="resetDemoData()" title="Reset to initial state" class="p-3.5 rounded-2xl bg-darkCard hover:bg-darkBorder border border-darkBorder text-slate-400 hover:text-white transition-all">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Asset Breakdown Chips -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 pt-6 border-t border-darkBorder/60">
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-darkMain/60 border border-darkBorder">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-brandOrange/20 border border-brandOrange/30 flex items-center justify-center text-brandOrange font-bold">₿</div>
+              <div>
+                <p class="text-xs text-slate-400 font-medium">Bitcoin (L1 Capital)</p>
+                <p class="text-sm font-bold text-white font-mono" id="breakdown-btc">0.01800000 BTC</p>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400" id="breakdown-btc-usd">≈ $1,339.20</span>
+          </div>
+
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-darkMain/60 border border-darkBorder">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-brandPurple/20 border border-brandPurple/30 flex items-center justify-center text-brandPurple font-bold">s₿</div>
+              <div>
+                <p class="text-xs text-slate-400 font-medium">sBTC (Stacks Spending Rails)</p>
+                <p class="text-sm font-bold text-white font-mono" id="breakdown-sbtc">0.00600000 sBTC</p>
+              </div>
+            </div>
+            <span class="text-xs text-emerald-400 font-semibold" id="breakdown-sbtc-usd">≈ $446.40 (Active)</span>
+          </div>
+
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-darkMain/60 border border-darkBorder sm:col-span-2 lg:col-span-1">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <i data-lucide="gauge" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400 font-medium">Daily Spending Limit</p>
+                <p class="text-sm font-bold text-white">$5,000.00 USD</p>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400">100% Available</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions Activity (PRD Section 15) -->
+      <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i data-lucide="activity" class="w-5 h-5 text-brandOrange"></i>
+            <h2 class="text-lg font-bold text-white">Recent Spending Activity</h2>
+          </div>
+          <button onclick="switchTab('ledger')" class="text-xs text-brandOrange font-semibold hover:underline flex items-center gap-1">
+            View full ledger <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <div class="divide-y divide-darkBorder" id="recent-activity-list">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: VIRTUAL CARD PROTOTYPE              -->
+    <!-- ========================================== -->
+    <section id="tab-card" class="space-y-8 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Virtual Card Display Graphic (PRD Section 10) -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="virtual-card rounded-3xl p-6 sm:p-8 text-white aspect-[1.586/1] flex flex-col justify-between shadow-2xl relative" id="virtual-card-box">
+            
+            <!-- Top Card Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-brandOrange flex items-center justify-center">
+                  <i data-lucide="zap" class="w-4 h-4 text-black fill-black"></i>
+                </div>
+                <span class="font-extrabold tracking-tight text-lg">Spend<span class="text-brandOrange">BTC</span></span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-white/10 border border-white/20 text-slate-200">sBTC Debit</span>
+            </div>
+
+            <!-- Card Chip & Contactless -->
+            <div class="flex items-center gap-4 my-2">
+              <div class="chip"></div>
+              <i data-lucide="wifi" class="w-6 h-6 text-slate-400 rotate-90"></i>
+            </div>
+
+            <!-- Card Details -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <p class="font-mono text-xl sm:text-2xl tracking-widest font-semibold drop-shadow" id="card-display-number">4532 •••• •••• 4901</p>
+                <button onclick="toggleCardNumberVisibility()" class="text-slate-400 hover:text-white p-1">
+                  <i data-lucide="eye" id="card-eye-icon" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-slate-300 font-mono pt-2">
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 block">Cardholder</span>
+                  <span class="font-bold text-white uppercase tracking-wider" id="card-holder-name">VITTORIO AFFOLABI</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 block">Expires</span>
+                  <span class="font-bold text-white" id="card-expiry">09/28</span>
+                </div>
+                <div>
+                  <span class="text-[10px] uppercase text-slate-400 block">CVV</span>
+                  <span class="font-bold text-white" id="card-cvv">•••</span>
+                </div>
+                <!-- Card Network -->
+                <div class="text-right font-black italic text-lg text-slate-200">
+                  VISA
+                </div>
+              </div>
+            </div>
+
+            <!-- Frozen Overlay (if frozen) -->
+            <div id="card-frozen-overlay" class="absolute inset-0 bg-blue-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2 hidden">
+              <i data-lucide="snowflake" class="w-12 h-12 text-blue-300 animate-spin" style="animation-duration: 10s;"></i>
+              <p class="text-lg font-bold text-white">Card Frozen</p>
+              <p class="text-xs text-blue-200">Transactions are temporarily blocked</p>
+            </div>
+          </div>
+
+          <!-- Security Notice from PRD Section 10 -->
+          <div class="p-4 rounded-2xl bg-darkCard border border-darkBorder flex items-start gap-3 text-xs text-slate-400">
+            <i data-lucide="info" class="w-4 h-4 text-brandPurple shrink-0 mt-0.5"></i>
+            <p>
+              <strong>Proof of Concept:</strong> This virtual card demonstrates how sBTC spending power translates into standard payment rails. SpendBTC abstracts authorization and settles directly from user balances without requiring bank custody.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card Controls & Actions -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="sliders" class="w-5 h-5 text-brandOrange"></i> Card Management
+            </h3>
+
+            <!-- Freeze / Unfreeze Switch -->
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-darkMain border border-darkBorder">
+              <div class="space-y-1">
+                <p class="text-sm font-semibold text-white">Card Lock / Freeze</p>
+                <p class="text-xs text-slate-400">Temporarily prevent all transactions</p>
+              </div>
+              <button onclick="toggleCardFreeze()" id="btn-freeze-toggle" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-darkCard border border-darkBorder text-slate-200 hover:bg-darkBorder">
+                Freeze Card
+              </button>
+            </div>
+
+            <!-- Daily Limit Slider -->
+            <div class="p-4 rounded-2xl bg-darkMain border border-darkBorder space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-semibold text-white">Daily Spending Limit</span>
+                <span class="text-sm font-bold text-brandOrange" id="card-limit-val">$500.00</span>
+              </div>
+              <input type="range" min="50" max="2500" step="50" value="500" id="limit-slider" oninput="updateDailyLimit(this.value)" class="w-full accent-brandOrange cursor-pointer">
+              <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                <span>$50</span>
+                <span>$1,000</span>
+                <span>$2,500</span>
+              </div>
+            </div>
+
+            <!-- Simulated Online Merchant Checkout -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-brandPurple/10 to-brandOrange/10 border border-brandPurple/20 space-y-3">
+              <p class="text-xs font-bold text-brandPurple uppercase tracking-wider">Online Merchant Simulation</p>
+              <p class="text-xs text-slate-300">Test an instant e-commerce purchase charged against your virtual card using sBTC.</p>
+              <div class="flex gap-2">
+                <button onclick="simulateCardCharge(25.0, 'Amazon.com Express Checkout')" class="flex-1 py-2.5 px-3 rounded-xl bg-brandPurple hover:bg-brandPurple/90 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-brandPurple/20">
+                  <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Buy Coffee ($25)
+                </button>
+                <button onclick="simulateCardCharge(120.0, 'Cloud Services Monthly')" class="flex-1 py-2.5 px-3 rounded-xl bg-darkCard border border-darkBorder hover:bg-darkBorder text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                  <i data-lucide="server" class="w-3.5 h-3.5"></i> Server Sub ($120)
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: TRANSACTION LEDGER                  -->
+    <!-- ========================================== -->
+    <section id="tab-ledger" class="space-y-6 hidden">
+      <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="receipt" class="w-5 h-5 text-brandOrange"></i> Transaction Ledger
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Immutable settlement records & Stacks blockchain proofs (PRD Section 8.6)</p>
+          </div>
+          <button onclick="loadTransactions()" class="px-3 py-1.5 rounded-xl bg-darkMain hover:bg-darkBorder border border-darkBorder text-xs text-slate-300 flex items-center gap-1.5 self-start">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Ledger
+          </button>
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 uppercase tracking-wider border-b border-darkBorder font-mono">
+              <tr>
+                <th class="pb-3 font-semibold">Tx ID / Date</th>
+                <th class="pb-3 font-semibold">Recipient</th>
+                <th class="pb-3 font-semibold">Fiat Value</th>
+                <th class="pb-3 font-semibold">Asset Amount</th>
+                <th class="pb-3 font-semibold">Route</th>
+                <th class="pb-3 font-semibold">Status</th>
+                <th class="pb-3 font-semibold text-right">Stacks TxID</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-darkBorder font-sans text-slate-200" id="ledger-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: DEVELOPER & PARTNER PORTAL          -->
+    <!-- ========================================== -->
+    <section id="tab-developer" class="space-y-8 hidden">
+      
+      <!-- Dev Stats Banner -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-panel rounded-2xl p-5 border border-darkBorder space-y-1">
+          <p class="text-xs text-slate-400">Total API Volume</p>
+          <p class="text-2xl font-bold text-white">$148,290.00</p>
+          <span class="text-[10px] text-emerald-400 font-semibold">↑ 18.4% this week</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-5 border border-darkBorder space-y-1">
+          <p class="text-xs text-slate-400">sBTC Settled</p>
+          <p class="text-2xl font-bold text-brandOrange font-mono">1.9931 sBTC</p>
+          <span class="text-[10px] text-slate-400">Stacks testnet blocks</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-5 border border-darkBorder space-y-1">
+          <p class="text-xs text-slate-400">Settlement Success Rate</p>
+          <p class="text-2xl font-bold text-emerald-400">99.4%</p>
+          <span class="text-[10px] text-slate-400">Avg execution: 2.1s</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-5 border border-darkBorder space-y-1">
+          <p class="text-xs text-slate-400">Active Webhooks</p>
+          <p class="text-2xl font-bold text-brandPurple">1 Endpoint</p>
+          <span class="text-[10px] text-emerald-400">Healthy (200 OK)</span>
+        </div>
+      </div>
+
+      <!-- Main Developer Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left: API Keys & Webhooks -->
+        <div class="lg:col-span-6 space-y-6">
+          
+          <!-- API Keys Box (PRD Section 16) -->
+          <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="key" class="w-4 h-4 text-brandOrange"></i> API Credentials
+              </h3>
+              <button onclick="generateNewApiKey()" class="text-xs text-brandOrange font-semibold hover:underline flex items-center gap-1">
+                + Generate Key
+              </button>
+            </div>
+            
+            <div class="space-y-3" id="api-keys-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Webhooks & Event Simulator (PRD Section 12) -->
+          <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+            <div class="flex items-center justify-between">
+              <div class="space-y-1">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="webhook" class="w-4 h-4 text-brandPurple"></i> Webhook Event Stream
+                </h3>
+                <p class="text-xs text-slate-400">Real-time status updates delivered to fintech endpoints</p>
+              </div>
+              <button onclick="sendTestWebhookPing()" class="px-3 py-1.5 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-xs font-semibold hover:bg-brandPurple/30 transition-all flex items-center gap-1.5">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Test Ping
+              </button>
+            </div>
+
+            <!-- Recent Webhook Deliveries -->
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="webhook-logs-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Interactive API Playground (PRD Section 8.7 & 16) -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Interactive API Playground
+              </h3>
+              <span class="text-xs font-mono text-slate-400">POST /api/v1/payments/quote</span>
+            </div>
+
+            <!-- Playground Controls -->
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Amount</label>
+                  <input type="number" id="play-amount" value="50000" class="w-full bg-darkMain border border-darkBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brandOrange">
+                </div>
+                <div>
+                  <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Currency</label>
+                  <select id="play-currency" class="w-full bg-darkMain border border-darkBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brandOrange">
+                    <option value="NGN">NGN (Nigerian Naira)</option>
+                    <option value="USD">USD (US Dollar)</option>
+                    <option value="EUR">EUR (Euro)</option>
+                    <option value="KES">KES (Kenyan Shilling)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="executePlaygroundQuote()" class="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs transition-all flex items-center justify-center gap-1.5">
+                  <i data-lucide="play" class="w-3.5 h-3.5 fill-black"></i> Send Request
+                </button>
+                <button onclick="copyCurlSnippet()" class="px-4 py-2 rounded-xl bg-darkMain border border-darkBorder text-slate-300 hover:text-white text-xs font-mono transition-all flex items-center gap-1.5">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy cURL
+                </button>
+              </div>
+
+              <!-- JSON Response Box -->
+              <div>
+                <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Response (HTTP 200 OK)</label>
+                <pre id="playground-response" class="bg-darkMain p-4 rounded-2xl border border-darkBorder text-[11px] font-mono text-emerald-400 max-h-64 overflow-y-auto leading-relaxed">{
+  "message": "Click 'Send Request' to test live quote calculation"
+}</pre>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PAYMENT FLOW A (PRD SECTION 9)      -->
+  <!-- ========================================== -->
+  <div id="payment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 relative border border-slate-700 shadow-2xl">
+      
+      <!-- Close Button -->
+      <button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Step 1: Input Amount & Destination -->
+      <div id="payment-step-1" class="space-y-6">
+        <div class="space-y-1">
+          <span class="text-xs uppercase font-bold tracking-wider text-brandOrange">Step 1 of 3</span>
+          <h3 class="text-xl font-bold text-white">Make a Payment</h3>
+          <p class="text-xs text-slate-400">Spend sBTC transparently in local currency</p>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-xs text-slate-400 font-medium block mb-1.5">Payment Amount</label>
+            <div class="relative">
+              <input type="number" id="pay-input-amount" value="50000" class="w-full bg-darkMain border border-darkBorder rounded-2xl pl-4 pr-24 py-3.5 text-lg font-bold text-white focus:outline-none focus:border-brandOrange">
+              <div class="absolute right-2 top-2 bottom-2">
+                <select id="pay-input-currency" class="h-full bg-darkCard text-white text-xs font-semibold rounded-xl px-2 border border-darkBorder focus:outline-none">
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-400 font-medium block mb-1.5">Recipient / Destination</label>
+            <input type="text" id="pay-input-recipient" value="Shopify Merchant Express" class="w-full bg-darkMain border border-darkBorder rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brandOrange">
+          </div>
+        </div>
+
+        <button onclick="requestPaymentQuote()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brandOrange to-amber-500 hover:from-amber-500 hover:to-brandOrange text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-brandOrange/25 transition-all">
+          <span>Get Quote & Compare Routes</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Step 2: Quote Breakdown & Route Selector (PRD Section 8.2 & 8.4) -->
+      <div id="payment-step-2" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <span class="text-xs uppercase font-bold tracking-wider text-brandOrange">Step 2 of 3</span>
+            <h3 class="text-xl font-bold text-white">Payment Quote</h3>
+          </div>
+          <!-- 30-second TTL countdown bar -->
+          <div class="text-right">
+            <div class="flex items-center gap-1.5 text-xs text-amber-400 font-mono font-bold">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              <span id="quote-timer">30s</span>
+            </div>
+            <span class="text-[10px] text-slate-400">Guaranteed rate</span>
+          </div>
+        </div>
+
+        <!-- Calculated Amount Display -->
+        <div class="p-5 rounded-2xl bg-darkMain border border-darkBorder text-center space-y-1">
+          <p class="text-xs text-slate-400 uppercase font-medium">You are paying</p>
+          <p class="text-2xl font-extrabold text-white" id="quote-fiat-display">₦50,000</p>
+          <p class="text-sm font-bold text-brandOrange font-mono" id="quote-sbtc-display">≈ 0.00042000 sBTC</p>
+        </div>
+
+        <!-- Multi-Route Selector (PRD Section 8.4) -->
+        <div class="space-y-2">
+          <label class="text-xs text-slate-400 font-semibold block">Execution Route (Automated Best Rate)</label>
+          <div class="space-y-2" id="quote-routes-list">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Fee Breakdown -->
+        <div class="p-4 rounded-2xl bg-darkMain/60 border border-darkBorder text-xs space-y-2">
+          <div class="flex justify-between text-slate-400">
+            <span>Stacks Network Fee:</span>
+            <span class="font-mono text-slate-200" id="quote-fee-network">0.00000100 sBTC</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>SpendBTC Protocol Fee:</span>
+            <span class="font-mono text-slate-200" id="quote-fee-spendbtc">0.00000067 sBTC</span>
+          </div>
+          <div class="flex justify-between font-bold text-white pt-2 border-t border-darkBorder">
+            <span>Total sBTC Required:</span>
+            <span class="font-mono text-brandOrange" id="quote-fee-total">0.00042167 sBTC</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="showStep1()" class="py-3 px-4 rounded-2xl bg-darkCard border border-darkBorder text-slate-300 text-xs font-semibold">Back</button>
+          <button onclick="authorizePayment()" class="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-brandOrange to-amber-500 hover:from-amber-500 hover:to-brandOrange text-black font-bold text-sm shadow-lg shadow-brandOrange/25 transition-all">
+            Confirm & Sign Transaction
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Real-time Settlement Progress & Proof (PRD Section 8.5) -->
+      <div id="payment-step-3" class="space-y-6 hidden">
+        <div class="text-center space-y-2">
+          <div id="settlement-icon" class="w-16 h-16 rounded-full bg-brandOrange/20 border border-brandOrange/40 mx-auto flex items-center justify-center text-brandOrange animate-pulse">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white" id="settlement-title">Processing Payment...</h3>
+          <p class="text-xs text-slate-400" id="settlement-desc">Broadcasting contract call to Stacks sBTC settlement layer</p>
+        </div>
+
+        <!-- 5-State Machine Tracker (PRD Section 8.5) -->
+        <div class="p-4 rounded-2xl bg-darkMain border border-darkBorder space-y-3">
+          <div class="flex items-center justify-between text-[11px] font-mono">
+            <span id="st-quoted" class="text-emerald-400 font-bold">1. QUOTED ✓</span>
+            <span id="st-auth" class="text-emerald-400 font-bold">2. AUTHORIZED ✓</span>
+            <span id="st-proc" class="text-brandOrange font-bold animate-pulse">3. PROCESSING...</span>
+            <span id="st-conf" class="text-slate-500">4. CONFIRMED</span>
+          </div>
+          <div class="w-full bg-darkCard h-2 rounded-full overflow-hidden">
+            <div id="settlement-progress-bar" class="bg-gradient-to-r from-brandOrange to-brandPurple h-full w-2/3 transition-all duration-700"></div>
+          </div>
+        </div>
+
+        <!-- Settlement Proof & Explorer Link -->
+        <div id="settlement-proof" class="p-4 rounded-2xl bg-darkMain/60 border border-darkBorder text-xs space-y-2 hidden">
+          <div class="flex justify-between text-slate-400">
+            <span>Recipient:</span>
+            <span class="font-semibold text-white" id="proof-recipient">-</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Settled Amount:</span>
+            <span class="font-bold text-emerald-400" id="proof-amount">-</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Stacks TxID:</span>
+            <a href="#" target="_blank" id="proof-explorer-link" class="font-mono text-brandOrange hover:underline truncate max-w-[200px]">0x...</a>
+          </div>
+        </div>
+
+        <button id="btn-settlement-done" onclick="closePaymentModal()" class="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-sm hidden">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: GUIDED HACKATHON DEMO TOUR (SEC 21) -->
+  <!-- ========================================== -->
+  <div id="demo-tour-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 border border-brandOrange/40 shadow-2xl relative">
+      <button onclick="closeDemoStory()" class="absolute top-6 right-6 text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brandOrange/20 border border-brandOrange/40 flex items-center justify-center text-brandOrange font-black">
+          ⚡
+        </div>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-brandOrange">Hackathon Presentation Mode</span>
+          <h3 class="text-xl font-extrabold text-white" id="tour-scene-title">Scene 1: Available to Spend</h3>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-darkMain border border-darkBorder space-y-3">
+        <p class="text-sm text-slate-300 leading-relaxed" id="tour-scene-narrative">
+          The user opens SpendBTC. Instead of seeing raw UTXOs or Stacks gas units, they see familiar spending power: <strong>$1,284.62</strong> backed transparently by 0.018 BTC and 0.006 sBTC.
+        </p>
+        <div class="p-3 rounded-xl bg-darkCard border border-darkBorder/60 text-xs text-brandOrange font-mono" id="tour-scene-badge">
+          PRD Section 21 • Scene 1
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-xs text-slate-400" id="tour-step-counter">Scene 1 of 7</span>
+        <div class="flex gap-2">
+          <button onclick="prevTourStep()" id="tour-btn-prev" class="px-4 py-2 rounded-xl bg-darkCard border border-darkBorder text-slate-300 text-xs font-semibold disabled:opacity-40" disabled>
+            Previous
+          </button>
+          <button onclick="nextTourStep()" id="tour-btn-next" class="px-5 py-2 rounded-xl bg-gradient-to-r from-brandOrange to-amber-500 text-black text-xs font-bold shadow-md shadow-brandOrange/20">
+            Next Scene →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-darkBorder py-6 mt-auto bg-darkCard/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-white">SpendBTC</span>
+        <span>— The spending layer for Bitcoin (Stacks & sBTC Ecosystem)</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Proof of Concept v1.0</span>
+        <span>•</span>
+        <a href="https://github.com/affolabi/SpendBTC" target="_blank" class="hover:text-white transition-colors flex items-center gap-1">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
