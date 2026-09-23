@@ -1,5 +1,5 @@
 // ==============================================================================
-// SpendBTC Frontend Application Logic
+// SpendBTC Frontend Application Logic (Stacks & sBTC)
 // ==============================================================================
 
 let currentAccount = null;
@@ -7,6 +7,7 @@ let currentCard = null;
 let currentQuote = null;
 let quoteCountdownInterval = null;
 let tourStep = 1;
+let connectedWalletType = "demo"; // 'leather', 'xverse', or 'demo'
 
 // Initialize on DOM load
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,13 +29,13 @@ function switchTab(tabName) {
     if (t === tabName) {
       el.classList.remove("hidden");
       if (navBtn) {
-        navBtn.classList.add("bg-darkCard", "text-white", "shadow-sm");
+        navBtn.classList.add("bg-carbonCard", "text-white", "shadow-sm");
         navBtn.classList.remove("text-slate-400");
       }
     } else {
       el.classList.add("hidden");
       if (navBtn) {
-        navBtn.classList.remove("bg-darkCard", "text-white", "shadow-sm");
+        navBtn.classList.remove("bg-carbonCard", "text-white", "shadow-sm");
         navBtn.classList.add("text-slate-400");
       }
     }
@@ -54,7 +55,6 @@ async function loadAccountData() {
     const acc = await res.json();
     currentAccount = acc;
 
-    // PRD Section 15: Primary display
     const btcUsd = acc.btc_balance * 74400;
     const sbtcUsd = acc.sbtc_balance * 74400;
     const totalUsd = btcUsd + sbtcUsd;
@@ -65,13 +65,87 @@ async function loadAccountData() {
     document.getElementById("breakdown-btc").textContent = `${acc.btc_balance.toFixed(8)} BTC`;
     document.getElementById("breakdown-btc-usd").textContent = `≈ $${btcUsd.toFixed(2)}`;
     document.getElementById("breakdown-sbtc").textContent = `${acc.sbtc_balance.toFixed(8)} sBTC`;
-    document.getElementById("breakdown-sbtc-usd").textContent = `≈ $${sbtcUsd.toFixed(2)} (Active)`;
+    document.getElementById("breakdown-sbtc-usd").textContent = `≈ $${sbtcUsd.toFixed(2)}`;
     
-    // Topbar address
+    // Topbar & Modal Address
     const addr = acc.stacks_address;
-    document.getElementById("topbar-address").textContent = `${addr.slice(0, 5)}...${addr.slice(-5)}`;
+    const shortAddr = `${addr.slice(0, 5)}...${addr.slice(-5)}`;
+    const labelEl = document.getElementById("topbar-address-label");
+    if (labelEl) labelEl.textContent = shortAddr;
+    const modalAddrEl = document.getElementById("modal-connected-address");
+    if (modalAddrEl) modalAddrEl.textContent = addr;
+
   } catch (err) {
     console.error("Failed to load account:", err);
+  }
+}
+
+// ------------------------------------------------------------------------------
+// Stacks Wallet Integration (Leather / Xverse / Demo)
+// ------------------------------------------------------------------------------
+function openWalletModal() {
+  document.getElementById("wallet-modal").classList.remove("hidden");
+  lucide.createIcons();
+}
+
+function closeWalletModal() {
+  document.getElementById("wallet-modal").classList.add("hidden");
+}
+
+async function connectWallet(type) {
+  connectedWalletType = type;
+
+  if (type === "leather") {
+    if (window.LeatherProvider || window.HiroWalletProvider) {
+      try {
+        const provider = window.LeatherProvider || window.HiroWalletProvider;
+        const resp = await provider.request("getAddresses");
+        const stxAddr = resp?.result?.addresses?.find(a => a.symbol === "STX")?.address;
+        if (stxAddr) {
+          await registerOrSwitchAccount(stxAddr, "Leather User");
+          closeWalletModal();
+          alert(`Connected Leather Wallet: ${stxAddr}`);
+          return;
+        }
+      } catch (e) {
+        console.warn("Leather connection cancelled or failed:", e);
+      }
+    } else {
+      alert("Leather wallet extension was not detected in this browser. Switching to Stacks Testnet Demo mode with pre-funded sBTC.");
+    }
+  } else if (type === "xverse") {
+    if (window.XverseProviders || window.BitcoinProvider) {
+      try {
+        alert("Xverse detected! Requesting testnet connection...");
+      } catch (e) {
+        console.warn("Xverse connection error:", e);
+      }
+    } else {
+      alert("Xverse wallet extension was not detected in this browser. Switching to Stacks Testnet Demo mode with pre-funded sBTC.");
+    }
+  }
+
+  // Demo Testnet fallback
+  await registerOrSwitchAccount("SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7", "Vittorio Affolabi");
+  closeWalletModal();
+}
+
+async function registerOrSwitchAccount(stacksAddress, userName) {
+  try {
+    const res = await fetch("/api/v1/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_name: userName,
+        stacks_address: stacksAddress,
+        btc_balance: 0.018,
+        sbtc_balance: 0.006,
+        fiat_currency: "USD"
+      })
+    });
+    await loadAccountData();
+  } catch (err) {
+    console.error("Error setting account:", err);
   }
 }
 
@@ -143,11 +217,11 @@ function updateCardFrozenState(isFrozen) {
   if (isFrozen) {
     overlay.classList.remove("hidden");
     btn.textContent = "Unfreeze Card";
-    btn.classList.add("bg-emerald-500/20", "text-emerald-400", "border-emerald-500/40");
+    btn.classList.add("border-emerald-500", "text-emerald-400");
   } else {
     overlay.classList.add("hidden");
     btn.textContent = "Freeze Card";
-    btn.classList.remove("bg-emerald-500/20", "text-emerald-400", "border-emerald-500/40");
+    btn.classList.remove("border-emerald-500", "text-emerald-400");
   }
 }
 
@@ -226,26 +300,23 @@ function renderQuoteStep(quote) {
   document.getElementById("payment-step-1").classList.add("hidden");
   document.getElementById("payment-step-2").classList.remove("hidden");
 
-  // Display fiat & sBTC
   const symbol = quote.fiat_currency === "NGN" ? "₦" : (quote.fiat_currency === "EUR" ? "€" : "$");
   document.getElementById("quote-fiat-display").textContent = `${symbol}${quote.fiat_amount.toLocaleString()}`;
   document.getElementById("quote-sbtc-display").textContent = `≈ ${quote.asset_amount.toFixed(8)} sBTC`;
 
-  // Fees
   document.getElementById("quote-fee-network").textContent = `${quote.network_fee_asset.toFixed(8)} sBTC`;
   document.getElementById("quote-fee-spendbtc").textContent = `${quote.execution_fee_asset.toFixed(8)} sBTC`;
   document.getElementById("quote-fee-total").textContent = `${quote.total_asset_amount.toFixed(8)} sBTC`;
 
-  // Routes
   const routesContainer = document.getElementById("quote-routes-list");
   routesContainer.innerHTML = quote.routes.map(r => `
-    <label class="flex items-center justify-between p-3 rounded-xl border ${r.recommended ? 'border-brandOrange bg-brandOrange/10' : 'border-darkBorder bg-darkMain/50'} cursor-pointer hover:bg-darkBorder/40 transition-all">
+    <label class="flex items-center justify-between p-3 rounded-xl border ${r.recommended ? 'border-stacksCoral bg-stacksCoral/10' : 'border-carbonBorder bg-carbonMain/50'} cursor-pointer hover:border-slate-500 transition-all">
       <div class="flex items-center gap-3">
-        <input type="radio" name="payment-route" value="${r.name}" ${r.recommended ? 'checked' : ''} class="accent-brandOrange">
+        <input type="radio" name="payment-route" value="${r.name}" ${r.recommended ? 'checked' : ''} class="accent-stacksCoral">
         <div>
           <p class="text-xs font-bold text-white flex items-center gap-2">
             ${r.name}
-            ${r.recommended ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-brandOrange text-black font-extrabold uppercase">Best Rate</span>' : ''}
+            ${r.recommended ? '<span class="stacks-badge stacks-badge-coral">Best Rate</span>' : ''}
           </p>
           <p class="text-[10px] text-slate-400">${r.description} • Est. ${r.estimated_time_sec}s</p>
         </div>
@@ -254,7 +325,6 @@ function renderQuoteStep(quote) {
     </label>
   `).join("");
 
-  // 30-Second TTL Countdown Timer
   startQuoteCountdown(quote.ttl_seconds);
   lucide.createIcons();
 }
@@ -278,16 +348,14 @@ function startQuoteCountdown(seconds) {
 
 async function authorizePayment() {
   if (!currentQuote) return;
-  const recipient = document.getElementById("pay-input-recipient").value || "Shopify Merchant Hub";
+  const recipient = document.getElementById("pay-input-recipient").value || "SpendBTC Test Merchant";
   const selectedRouteEl = document.querySelector('input[name="payment-route"]:checked');
   const route = selectedRouteEl ? selectedRouteEl.value : currentQuote.selected_route;
 
-  // Move to step 3 (Settlement tracker)
   document.getElementById("payment-step-2").classList.add("hidden");
   document.getElementById("payment-step-3").classList.remove("hidden");
   lucide.createIcons();
 
-  // Progress simulation animation
   const progressBar = document.getElementById("settlement-progress-bar");
   const stQuoted = document.getElementById("st-quoted");
   const stAuth = document.getElementById("st-auth");
@@ -310,26 +378,22 @@ async function authorizePayment() {
       document.getElementById("settlement-title").textContent = "Payment Failed";
       document.getElementById("settlement-desc").textContent = result.error || "An error occurred";
       document.getElementById("settlement-icon").innerHTML = '<i data-lucide="alert-circle" class="w-8 h-8 text-rose-500"></i>';
-      document.getElementById("settlement-icon").classList.replace("bg-brandOrange/20", "bg-rose-500/20");
       document.getElementById("btn-settlement-done").classList.remove("hidden");
       lucide.createIcons();
       return;
     }
 
-    // Step state animation: SUBMITTED -> CONFIRMED
     setTimeout(() => {
       progressBar.style.width = "100%";
-      stProc.classList.remove("animate-pulse", "text-brandOrange");
+      stProc.classList.remove("animate-pulse", "text-stacksCoral");
       stProc.classList.add("text-emerald-400");
       stConf.classList.replace("text-slate-500", "text-emerald-400");
       stConf.textContent = "4. CONFIRMED ✓";
 
       document.getElementById("settlement-title").textContent = "Payment Successful! 🎉";
-      document.getElementById("settlement-desc").textContent = "Funds settled via sBTC Clarity Contract on Stacks";
+      document.getElementById("settlement-desc").textContent = "Funds settled via sBTC Settlement Contract on Stacks";
       document.getElementById("settlement-icon").innerHTML = '<i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i>';
-      document.getElementById("settlement-icon").classList.replace("bg-brandOrange/20", "bg-emerald-500/20");
 
-      // Show proof & explorer link
       document.getElementById("settlement-proof").classList.remove("hidden");
       document.getElementById("proof-recipient").textContent = result.recipient;
       const symbol = result.fiat_currency === "NGN" ? "₦" : "$";
@@ -354,7 +418,6 @@ async function loadTransactions() {
     const res = await fetch("/api/v1/transactions");
     const txs = await res.json();
 
-    // Populate recent activity in Consumer tab
     const recentEl = document.getElementById("recent-activity-list");
     if (recentEl) {
       recentEl.innerHTML = txs.slice(0, 3).map(tx => {
@@ -363,7 +426,7 @@ async function loadTransactions() {
         return `
           <div class="py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl ${isCompleted ? 'bg-emerald-500/10 text-emerald-400' : 'bg-brandOrange/10 text-brandOrange'} flex items-center justify-center">
+              <div class="w-10 h-10 rounded-xl ${isCompleted ? 'bg-emerald-500/10 text-emerald-400' : 'bg-stacksCoral/10 text-stacksCoral'} flex items-center justify-center">
                 <i data-lucide="${isCompleted ? 'arrow-up-right' : 'clock'}" class="w-5 h-5"></i>
               </div>
               <div>
@@ -372,8 +435,8 @@ async function loadTransactions() {
               </div>
             </div>
             <div class="text-right">
-              <p class="text-sm font-bold text-white">${symbol}${tx.fiat_value.toLocaleString()}</p>
-              <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+              <p class="text-sm font-bold text-white font-mono">${symbol}${tx.fiat_value.toLocaleString()}</p>
+              <span class="stacks-badge ${isCompleted ? 'stacks-badge-green' : 'stacks-badge-coral'}">
                 ${tx.status}
               </span>
             </div>
@@ -382,7 +445,6 @@ async function loadTransactions() {
       }).join("");
     }
 
-    // Populate full ledger table
     const tableBody = document.getElementById("ledger-table-body");
     if (tableBody) {
       tableBody.innerHTML = txs.map(tx => {
@@ -390,22 +452,22 @@ async function loadTransactions() {
         const isCompleted = tx.status === "COMPLETED";
         const dateStr = new Date(tx.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         return `
-          <tr class="hover:bg-darkMain/50 transition-colors">
+          <tr class="hover:bg-carbonSurface transition-colors">
             <td class="py-3 font-mono text-slate-400">
               <span class="text-white block font-bold">${tx.id}</span>
               <span class="text-[10px]">${dateStr}</span>
             </td>
             <td class="py-3 font-semibold text-white">${tx.recipient}</td>
-            <td class="py-3 font-bold text-white">${symbol}${tx.fiat_value.toLocaleString()}</td>
-            <td class="py-3 font-mono text-brandOrange">${tx.amount.toFixed(8)} sBTC</td>
+            <td class="py-3 font-bold text-white font-mono">${symbol}${tx.fiat_value.toLocaleString()}</td>
+            <td class="py-3 font-mono text-stacksCoral">${tx.amount.toFixed(8)} sBTC</td>
             <td class="py-3 text-[11px] text-slate-400">${tx.route}</td>
             <td class="py-3">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+              <span class="stacks-badge ${isCompleted ? 'stacks-badge-green' : 'stacks-badge-coral'}">
                 ${tx.status}
               </span>
             </td>
             <td class="py-3 text-right font-mono">
-              <a href="https://explorer.hiro.so/txid/${tx.tx_hash}?chain=testnet" target="_blank" class="text-brandPurple hover:underline text-[11px]">
+              <a href="https://explorer.hiro.so/txid/${tx.tx_hash}?chain=testnet" target="_blank" class="text-stacksIndigo hover:underline text-[11px]">
                 ${tx.tx_hash ? tx.tx_hash.slice(0, 8) + '...' : '-'}
               </a>
             </td>
@@ -425,40 +487,38 @@ async function loadTransactions() {
 // ------------------------------------------------------------------------------
 async function loadDeveloperData() {
   try {
-    // API Keys
     const keysRes = await fetch("/api/v1/developer/keys");
     const keys = await keysRes.json();
     const keysList = document.getElementById("api-keys-list");
     if (keysList) {
       keysList.innerHTML = keys.map(k => `
-        <div class="p-3.5 rounded-2xl bg-darkMain border border-darkBorder flex items-center justify-between">
+        <div class="p-3.5 rounded-2xl bg-carbonMain border border-carbonBorder flex items-center justify-between">
           <div class="space-y-0.5">
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold text-white">${k.partner_name}</span>
-              <span class="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded ${k.key_type === 'live' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">${k.key_type}</span>
+              <span class="stacks-badge ${k.key_type === 'live' ? 'stacks-badge-coral' : 'stacks-badge-green'}">${k.key_type}</span>
             </div>
             <p class="font-mono text-xs text-slate-400">${k.secret_key.slice(0, 14)}••••••••</p>
           </div>
-          <button onclick="copyToClipboard('${k.secret_key}')" class="p-2 rounded-xl bg-darkCard border border-darkBorder text-slate-400 hover:text-white transition-all">
+          <button onclick="copyToClipboard('${k.secret_key}')" class="btn-stacks-secondary p-2 rounded-xl text-slate-400 hover:text-white">
             <i data-lucide="copy" class="w-4 h-4"></i>
           </button>
         </div>
       `).join("");
     }
 
-    // Webhook Logs
     const logsRes = await fetch("/api/v1/developer/logs");
     const logs = await logsRes.json();
     const logsList = document.getElementById("webhook-logs-list");
     if (logsList) {
       logsList.innerHTML = logs.map(l => `
-        <div class="p-3 rounded-xl bg-darkMain/80 border border-darkBorder flex items-center justify-between text-xs">
+        <div class="p-3 rounded-xl bg-carbonMain/80 border border-carbonBorder flex items-center justify-between text-xs">
           <div class="flex items-center gap-2.5">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-mono font-bold text-brandPurple">${l.event}</span>
+            <span class="font-mono font-bold text-stacksIndigo">${l.event}</span>
             <span class="text-[10px] text-slate-400">${new Date(l.created_at).toLocaleTimeString()}</span>
           </div>
-          <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px] font-bold">200 OK</span>
+          <span class="stacks-badge stacks-badge-green">200 OK</span>
         </div>
       `).join("");
     }
@@ -470,7 +530,7 @@ async function loadDeveloperData() {
 }
 
 async function generateNewApiKey() {
-  const name = prompt("Enter Partner / Integration Name:", "Acme Fintech App");
+  const name = prompt("Enter Partner / Integration Name:", "Fintech Sandbox");
   if (!name) return;
   try {
     await fetch("/api/v1/developer/keys", {
@@ -486,8 +546,7 @@ async function generateNewApiKey() {
 
 async function sendTestWebhookPing() {
   try {
-    const res = await fetch("/api/v1/developer/webhooks/test", { method: "POST" });
-    const data = await res.json();
+    await fetch("/api/v1/developer/webhooks/test", { method: "POST" });
     alert("Test webhook ping dispatched! Event: payment.confirmed delivered to endpoint.");
     loadDeveloperData();
   } catch (e) {
@@ -537,7 +596,7 @@ async function resetDemoData() {
 }
 
 // ------------------------------------------------------------------------------
-// Guided Product Architecture Walkthrough (PRD Section 21)
+// Guided Architecture Walkthrough (PRD Section 21)
 // ------------------------------------------------------------------------------
 const TOUR_SCENES = [
   {
@@ -575,7 +634,7 @@ const TOUR_SCENES = [
     step: 5,
     title: "Scene 6 & 7: Settlement Confirmed & Receipt",
     badge: "Architecture Spec • Scene 6 & 7",
-    narrative: "SpendBTC state machine progresses from <strong>PROCESSING</strong> to <strong>CONFIRMED</strong>. The ₦50,000 receipt is generated with a live Stacks testnet TxID.",
+    narrative: "SpendBTC state machine progresses from <strong>PROCESSING</strong> to <strong>CONFIRMED</strong>. The ₦50,000 receipt is generated with a simulated Stacks testnet TxID.",
     action: () => {}
   },
   {
@@ -621,7 +680,6 @@ function renderTourScene() {
   document.getElementById("tour-btn-prev").disabled = tourStep === 1;
   document.getElementById("tour-btn-next").textContent = tourStep === TOUR_SCENES.length ? "Finish Tour" : "Next Scene →";
 
-  // Trigger corresponding UI action
   if (scene.action) scene.action();
 }
 

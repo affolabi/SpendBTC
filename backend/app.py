@@ -1,9 +1,13 @@
 import os
+import sys
 import json
 import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone
+
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from backend.db import init_db, get_connection
 from backend.seed import seed_database
@@ -126,6 +130,26 @@ class SpendBTCHandler(BaseHTTPRequestHandler):
                 return self.send_json(404, {"error": "No card found"})
             return self.send_json(200, dict(card))
 
+        # GET /api/v1/payments/:id (PRD Section 8.7)
+        elif path.startswith("/api/v1/payments/") and not path.endswith("/quote"):
+            payment_id = path.split("/")[4]
+            cursor.execute("SELECT * FROM payments WHERE id = ?", (payment_id,))
+            pay = cursor.fetchone()
+            conn.close()
+            if not pay:
+                return self.send_json(404, {"error": "Payment not found"})
+            return self.send_json(200, dict(pay))
+
+        # GET /api/v1/transactions/:id (PRD Section 8.7)
+        elif path.startswith("/api/v1/transactions/") and len(path.split("/")) > 4:
+            tx_id = path.split("/")[4]
+            cursor.execute("SELECT * FROM transactions WHERE id = ?", (tx_id,))
+            tx = cursor.fetchone()
+            conn.close()
+            if not tx:
+                return self.send_json(404, {"error": "Transaction not found"})
+            return self.send_json(200, dict(tx))
+
         # GET /api/v1/transactions
         elif path == "/api/v1/transactions":
             cursor.execute("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 50")
@@ -169,8 +193,35 @@ class SpendBTCHandler(BaseHTTPRequestHandler):
         conn = get_connection()
         cursor = conn.cursor()
 
+        # POST /api/v1/accounts (PRD Section 8.7)
+        if path == "/api/v1/accounts":
+            acc_id = f"acc_{uuid.uuid4().hex[:12]}"
+            user_name = body.get("user_name", "Stacks User")
+            stacks_address = body.get("stacks_address", "SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7")
+            btc_balance = float(body.get("btc_balance", 0.0))
+            sbtc_balance = float(body.get("sbtc_balance", 0.005))
+            fiat_currency = body.get("fiat_currency", "USD")
+            now_iso = datetime.now(timezone.utc).isoformat()
+
+            cursor.execute("""
+            INSERT INTO accounts (id, user_name, stacks_address, btc_balance, sbtc_balance, fiat_currency, spending_limit_fiat, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 5000.0, ?)
+            """, (acc_id, user_name, stacks_address, btc_balance, sbtc_balance, fiat_currency, now_iso))
+            conn.commit()
+            conn.close()
+
+            return self.send_json(201, {
+                "id": acc_id,
+                "user_name": user_name,
+                "stacks_address": stacks_address,
+                "btc_balance": btc_balance,
+                "sbtc_balance": sbtc_balance,
+                "fiat_currency": fiat_currency,
+                "created_at": now_iso
+            })
+
         # POST /api/v1/payments/quote (PRD Section 8.2 & Section 8.7)
-        if path == "/api/v1/payments/quote":
+        elif path == "/api/v1/payments/quote":
             amount = float(body.get("amount", 50000))
             currency = body.get("currency", "NGN")
             asset = body.get("asset", "sBTC")

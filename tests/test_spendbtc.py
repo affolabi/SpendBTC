@@ -1,6 +1,7 @@
 import unittest
 import os
 import sys
+import uuid
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -43,7 +44,6 @@ class TestSpendBTC(unittest.TestCase):
         self.assertTrue(any(r["recommended"] for r in quote["routes"]))
 
     def test_03_risk_engine_insufficient_balance(self):
-        # Create quote demanding 100 sBTC
         fake_quote = {
             "id": "quot_huge",
             "asset": "sBTC",
@@ -57,7 +57,7 @@ class TestSpendBTC(unittest.TestCase):
             "spending_limit_fiat": 5000.0
         }
         with self.assertRaises(RiskValidationError) as ctx:
-            validate_payment_request(fake_account, fake_quote, "Merchant Hub")
+            validate_payment_request(fake_account, fake_quote, "SpendBTC Test Merchant")
         self.assertEqual(ctx.exception.code, "INSUFFICIENT_BALANCE")
 
     def test_04_risk_engine_quote_expired(self):
@@ -73,12 +73,12 @@ class TestSpendBTC(unittest.TestCase):
             "spending_limit_fiat": 5000.0
         }
         with self.assertRaises(RiskValidationError) as ctx:
-            validate_payment_request(fake_account, expired_quote, "Merchant Hub")
+            validate_payment_request(fake_account, expired_quote, "SpendBTC Test Merchant")
         self.assertEqual(ctx.exception.code, "QUOTE_EXPIRED")
 
     def test_05_execution_and_settlement(self):
         quote = generate_payment_quote("acc_spendbtc_demo", 15000.0, "NGN", "sBTC")
-        result = execute_payment_flow("acc_spendbtc_demo", quote, "Shopify Storefront")
+        result = execute_payment_flow("acc_spendbtc_demo", quote, "SpendBTC Test Merchant")
 
         self.assertIsNotNone(result["payment_id"])
         self.assertIsNotNone(result["tx_hash"])
@@ -93,7 +93,7 @@ class TestSpendBTC(unittest.TestCase):
         conn.close()
 
         self.assertIsNotNone(tx_row)
-        self.assertEqual(tx_row["recipient"], "Shopify Storefront")
+        self.assertEqual(tx_row["recipient"], "SpendBTC Test Merchant")
         self.assertEqual(tx_row["status"], "COMPLETED")
 
     def test_06_webhook_hmac_signatures(self):
@@ -101,9 +101,46 @@ class TestSpendBTC(unittest.TestCase):
         payload = b'{"event":"payment.confirmed","amount":50000}'
         signature = sign_payload(secret, payload)
 
-        self.assertEqual(len(signature), 64) # SHA256 hex digest length
-        # Deterministic HMAC verification
+        self.assertEqual(len(signature), 64)
         self.assertEqual(signature, sign_payload(secret, payload))
+
+    def test_07_account_creation_and_lookup(self):
+        new_id = f"acc_test_{uuid.uuid4().hex[:8]}"
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO accounts (id, user_name, stacks_address, btc_balance, sbtc_balance, fiat_currency, spending_limit_fiat, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 5000.0, '2026-09-24T00:00:00Z')
+        """, (new_id, "Test Stacks User", "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM", 0.05, 0.02, "USD"))
+        conn.commit()
+
+        cursor.execute("SELECT * FROM accounts WHERE id = ?", (new_id,))
+        acc = cursor.fetchone()
+        conn.close()
+
+        self.assertIsNotNone(acc)
+        self.assertEqual(acc["user_name"], "Test Stacks User")
+        self.assertEqual(acc["stacks_address"], "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM")
+        self.assertEqual(acc["sbtc_balance"], 0.02)
+
+    def test_08_get_payment_and_transaction_by_id(self):
+        quote = generate_payment_quote("acc_spendbtc_demo", 5000.0, "NGN", "sBTC")
+        res = execute_payment_flow("acc_spendbtc_demo", quote, "SpendBTC Test Merchant #3")
+        payment_id = res["payment_id"]
+        tx_id = res["transaction_id"]
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM payments WHERE id = ?", (payment_id,))
+        p = cursor.fetchone()
+        self.assertIsNotNone(p)
+        self.assertEqual(p["status"], "CONFIRMED")
+
+        cursor.execute("SELECT * FROM transactions WHERE id = ?", (tx_id,))
+        t = cursor.fetchone()
+        self.assertIsNotNone(t)
+        self.assertEqual(t["status"], "COMPLETED")
+        conn.close()
 
 if __name__ == "__main__":
     unittest.main()
