@@ -537,7 +537,7 @@ async function resetDemoData() {
 }
 
 // ------------------------------------------------------------------------------
-// Guided Grant Proposal & Architecture Walkthrough (PRD Section 21)
+// Guided Product Architecture Walkthrough (PRD Section 21)
 // ------------------------------------------------------------------------------
 const TOUR_SCENES = [
   {

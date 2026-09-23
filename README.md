@@ -1,48 +1,76 @@
 # SpendBTC ⚡
 
 > **The Spending Layer for Bitcoin**  
-> *A grant proposal and architectural blueprint for abstracting Bitcoin payment execution, conversion, and settlement behind familiar spending experiences.*
+> *Abstracting Bitcoin payment execution, conversion, and settlement behind familiar spending experiences.*
 
 [![Ecosystem](https://img.shields.io/badge/Ecosystem-Stacks%20%2F%20sBTC-orange.svg)](https://stacks.co)
 [![Category](https://img.shields.io/badge/Category-Bitcoin%20Payments-blue.svg)]()
-[![Stage](https://img.shields.io/badge/Project%20Stage-Grant%20Proposal%20%2F%20Concept-yellow.svg)]()
+[![Stage](https://img.shields.io/badge/Stage-Architecture%20%26%20Reference%20Prototype-blue.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 
 ---
 
-> ### 📌 Grant Application Notice
-> **Project Stage:** Idea / Architecture Specification & Prototype Blueprint  
-> **Target Ecosystem:** Stacks / sBTC / Bitcoin L2  
-> **Purpose of this Repository:** This repository serves as the **grant proposal documentation, technical architecture blueprint, and interactive reference prototype**. It proves technical feasibility, domain modeling, and API design for grant evaluators and ecosystem reviewers. **No production infrastructure has been launched yet; this grant application seeks funding to bring this architecture to life.**
+## 1. Product Overview
+
+SpendBTC is an infrastructure product designed to enable wallets, fintechs, and crypto applications to give users a familiar, effortless way to spend BTC and sBTC.
+
+Today, holding Bitcoin is simple, but spending it in everyday payment scenarios requires jumping through complex hoops: finding compatible payment methods, manually calculating conversion amounts in satoshis, navigating decentralized swaps, finding liquidity pools, executing L1 transactions, waiting 10–60 minutes for block confirmations, and managing slippage.
+
+**SpendBTC inverts this paradigm:**
+The product abstracts the complexity of Bitcoin payment execution, conversion, and settlement behind a simple, familiar spending experience.
+
+```
+   ┌────────────────────────────────────────────────────────┐
+   │                     Everyday World                     │
+   │       ₦50,000 / $35 / Virtual Card / QR Checkout       │
+   └───────────────────────────┬────────────────────────────┘
+                               │
+                               ▼
+   ┌────────────────────────────────────────────────────────┐
+   │                        SpendBTC                        │
+   │   The Spending Layer (Quote • Route • Risk • Settle)   │
+   └───────────────────────────┬────────────────────────────┘
+                               │
+                               ▼
+   ┌────────────────────────────────────────────────────────┐
+   │                   Stacks / sBTC Rails                  │
+   │    1:1 Bitcoin backing, fast blocks, Clarity escrow    │
+   └────────────────────────────────────────────────────────┘
+```
+
+> **Core Principle:**  
+> *The user should think about the payment, not the Bitcoin infrastructure behind it.*
 
 ---
 
-## 1. Executive Summary & Problem Statement
+## 2. The Problem & Market Opportunity
 
-Bitcoin is world-class as a store of value and settlement layer, but spending it in everyday consumer transactions remains deeply fragmented. A typical Bitcoin holder who wants to pay for an everyday purchase priced in local fiat (e.g., **₦50,000** or **$35**) must:
+### The Problem
+Most Bitcoin payment infrastructure historically focuses on **merchant acceptance** (e.g., getting a shop to accept BTC).
 
-```
-Hold BTC ➔ Find compatible payment method ➔ Calculate conversion satoshis ➔ Swap/convert ➔ Find liquidity ➔ Execute L1 tx ➔ Wait 10-60 min ➔ Pay
-```
+SpendBTC addresses the other side of the equation:
+> **How can Bitcoin holders spend the Bitcoin they already own through payment experiences they already understand?**
 
-This friction prevents Bitcoin from becoming everyday money and makes integration impossible for traditional fintech apps.
+People already understand:
+* Cards (debit / credit)
+* Payment balances in their local currency
+* One-tap authorization
+* QR checkouts & payment confirmations
 
-At the same time, existing Bitcoin payment solutions focus almost exclusively on **merchant acceptance**. SpendBTC focuses on the consumer and wallet side:
+They should not need to understand:
+* Stacks L2 transactions & contract calls
+* Liquidity pools & automated market makers
+* Routing algorithms & slippage tolerances
+* Block confirmation times
 
-> **How can Bitcoin holders spend the Bitcoin they already own through familiar payment experiences?**
-
-### The Core Principle
-> **The user should think about the payment, not the Bitcoin infrastructure behind it.**
-
-SpendBTC is designed as an **infrastructure translation layer** between:
-- **Everyday Payment Experiences** (Cards, balances, local fiat amounts, 1-click checkouts)
-- **Bitcoin & Stacks sBTC Capital** (1:1 Bitcoin backing, fast blocks, Clarity smart contract escrow)
+### The Solution: A Translation Layer
+SpendBTC acts as a translation layer between **Bitcoin capital** and **everyday payment infrastructure**, allowing any wallet or fintech partner to embed Bitcoin spending directly into their existing product.
 
 ---
 
-## 2. System Architecture (Proposed Design)
+## 3. System Architecture
 
-SpendBTC abstracts execution behind a unified REST API and webhook pipeline connecting client applications to Stacks smart contracts:
+SpendBTC connects consumer-facing partner applications to Stacks / sBTC settlement rails through a unified API:
 
 ```
                     USER / PARTNER APP
@@ -78,18 +106,28 @@ SpendBTC abstracts execution behind a unified REST API and webhook pipeline conn
 
 ---
 
-## 3. Core Technical Specifications
+## 4. Core Components
 
-### 3.1 SpendBTC Account Model
-Abstracts user balances into spendable fiat denominations (e.g. `$1,284.62` / `₦2,055,392`) mapped to underlying **BTC** and **sBTC** on the Stacks blockchain.
+### 4.1 SpendBTC Account
+Represents the user's available spending power in fiat terms (e.g., `$1,284.62` / `₦2,055,392`), backed transparently by their underlying **BTC** and **sBTC** balances on the Stacks blockchain.
 
-### 3.2 Payment Quote Engine (30-Second TTL)
-Calculates exact required sBTC for any local fiat currency payment:
-- **Inputs**: Amount (e.g. `₦50,000`), Currency (`NGN`), Asset (`sBTC`).
-- **30-Second Rate Lock**: Prevents volatility and slippage during authorization.
-- **Dynamic Liquidity Routing**: Compares Route A (Stacks Direct pool), Route B (Bitflow DEX aggregator), and Route C (Lightning Relayer) to recommend the optimal execution path.
+### 4.2 Payment Quote Engine (30-Second TTL)
+Before executing a payment, SpendBTC dynamically calculates how much sBTC is required:
+* **Inputs**: Payment amount (e.g. `₦50,000`), fiat currency (`NGN`), asset being spent (`sBTC`).
+* **Outputs**: Required asset amount (`0.00042 sBTC`), network fee breakdown, execution fee, expiration countdown (`30 seconds`).
+* **Multi-Route Liquidity Comparison**: Compares multiple execution routes to automatically select the optimal path:
+  - **Route A (Stacks Direct Pool)**: Native Stacks L2 settlement escrow.
+  - **Route B (Bitflow DEX Aggregator)**: Decentralized liquidity routing.
+  - **Route C (Lightning Relayer)**: Fast-path payment relayer with micro-batching (Recommended best rate).
 
-### 3.3 Execution & Settlement State Machine
+### 4.3 Risk & Validation Engine
+Validates transactions before execution to protect user capital:
+* **Balance Sufficiency**: Verifies user has adequate sBTC/BTC.
+* **Quote Freshness**: Enforces 30-second TTL to eliminate slippage risk.
+* **Spending Limits**: Enforces daily velocity and single-transaction limits.
+* **Idempotency**: Prevents duplicate payment submissions.
+
+### 4.4 Execution & Settlement State Machine
 Coordinates atomic settlement across a 5-stage lifecycle:
 ```
   [QUOTED] ➔ [AUTHORIZED] ➔ [PROCESSING] ➔ [SUBMITTED] ➔ [CONFIRMED]
@@ -97,38 +135,53 @@ Coordinates atomic settlement across a 5-stage lifecycle:
                                                        (or [FAILED])
 ```
 
-### 3.4 Clarity Settlement Contract (`contracts/spendbtc-settlement.clar`)
-Non-custodial smart contract specification on Stacks:
-- Locks incoming sBTC tokens in escrow.
-- Verifies recipient payment nonce and validity.
-- Enforces automated protocol and relayer fee splits.
-- Provides time-locked refund safety mechanisms if settlement is interrupted.
+### 4.5 Clarity Smart Contract (`contracts/spendbtc-settlement.clar`)
+On-chain non-custodial smart contract specification on Stacks:
+* Holds sBTC tokens in trustless escrow during authorization.
+* Verifies recipient payment nonce and merchant address.
+* Automatically splits protocol and relayer fees.
+* Includes time-locked dispute and refund mechanics.
 
-### 3.5 Risk & Validation Engine
-- Balance sufficiency verification.
-- Quote freshness enforcement (rejects expired quotes).
-- Daily velocity and transaction spending limits.
-- Idempotency & duplicate transaction prevention.
-
-### 3.6 Partner Webhooks & Transaction Ledger
-- Complete audit ledger logging Transaction ID, User ID, Asset, Fiat value, Recipient, Route, Fees, Status, and Stacks TxID.
-- Webhook dispatcher with HMAC-SHA256 signature headers (`X-SpendBTC-Signature`) across all payment lifecycle events.
+### 4.6 Webhooks & Transaction Ledger
+* **Audit Ledger**: Complete audit record retaining Transaction ID, User ID, Asset, Fiat value, Recipient, Route, Fees, Status, and Blockchain TxID.
+* **HMAC-Signed Webhooks**: Dispatches events (`payment.created`, `payment.authorized`, `payment.processing`, `payment.submitted`, `payment.confirmed`, `payment.failed`) to partner servers with `X-SpendBTC-Signature` headers.
 
 ---
 
-## 4. The Dual Experience Vision
+## 5. Dual Product Experience
 
-### 4.1 Consumer Spending & Virtual Card Prototype
-- **Spending Dashboard**: Shows fiat spending power with one-tap payment execution.
-- **Virtual Card Concept**: Demonstrates how sBTC balances could back card-based spending (freeze/unfreeze controls, spend limits, online checkout) without SpendBTC needing to become a bank.
+### 5.1 Consumer Spending & Virtual Card Prototype
+* **Spending Dashboard**: Highlights available spending power with one-tap payment execution.
+* **Virtual Card Concept**: Demonstrates how sBTC balances could back card-based spending (freeze/unfreeze controls, spend limits, online checkout simulator).
+* *Note: The virtual card is an interface demonstration of the intended future experience. SpendBTC focuses on the underlying infrastructure layer.*
 
-### 4.2 Developer & Partner Portal (The Real Product)
-- **"The card is only the interface. The infrastructure is the product."**
-- Enables crypto wallets, neobanks, and exchanges to integrate Bitcoin spending via REST APIs and Webhooks rather than building custom settlement rails.
+### 5.2 Developer & Partner Portal (The Core Product)
+* **"The card is only the interface. The infrastructure is the actual product."**
+* Enables crypto wallets, neobanks, and fintechs to integrate Bitcoin spending without rebuilding payment rails.
+* Includes API key management (`spbtc_test_...`), live webhook inspection, and an in-browser interactive API playground.
 
 ---
 
-## 5. API Specification (Planned Interface)
+## 6. API Reference (Planned Interface)
+
+### Accounts & Balances
+```http
+GET /api/v1/accounts
+GET /api/v1/accounts/:id/balance
+```
+**Response:**
+```json
+{
+  "accountId": "acc_01h8x9p3...",
+  "fiatCurrency": "USD",
+  "totalSpendingPowerFiat": 1284.62,
+  "balances": {
+    "btc": "0.01800000",
+    "sbtc": "0.00600000"
+  },
+  "stacksAddress": "SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7"
+}
+```
 
 ### Request Payment Quote
 ```http
@@ -187,65 +240,65 @@ Content-Type: application/json
 
 ---
 
-## 6. Grant Milestones & Requested Funding Scope
+## 7. Interactive Reference Prototype
 
-This grant will fund taking SpendBTC from this proposal and architectural blueprint into a fully operational, testnet-deployed settlement layer:
-
-| Milestone | Deliverable | Focus Area |
-| :---: | :--- | :--- |
-| **M1** | **Clarity Contract Suite & Formal Verification** | Finalize `spendbtc-settlement.clar`, write comprehensive Clarinet tests, implement SIP-010 sBTC token handling, timelock refunds, and protocol fee mechanics. |
-| **M2** | **Core Routing & Settlement Engine** | Production-grade Python/Node.js settlement engine, real-time oracle price feeds, and dynamic liquidity routing connecting Bitflow and ALEX pools. |
-| **M3** | **Partner Developer Infrastructure & SDK** | Production REST API, partner SDK (`@spendbtc/sdk`), webhook delivery service with exponential backoff retries, and developer portal. |
-| **M4** | **Testnet Deployment, Auditing & Pilot Integration** | Deployment to Stacks Testnet, end-to-end integration with a pilot Stacks wallet / fintech partner, security audit, and open community testing. |
-
----
-
-## 7. Interactive Reference Prototype & Codebase
-
-To demonstrate technical feasibility, this repository includes an **interactive reference prototype** implementing the proposed data flow:
+This repository includes a fully functional, self-contained reference prototype that models the proposed data flows, quote calculations, state machine transitions, and developer APIs:
 
 ```
 SPENDBTC/
-├── README.md                      # Grant Proposal & Technical Specification
-├── run.sh                         # Prototype launcher script
+├── README.md                      # Product Overview & Technical Specification
+├── run.sh                         # One-click local launcher
 ├── contracts/
 │   └── spendbtc-settlement.clar   # Clarity smart contract specification
 ├── backend/
-│   ├── app.py                     # Reference API server & static router
-│   ├── db.py                      # Prototype SQLite schema
-│   ├── seed.py                    # Demonstration seed accounts & transactions
+│   ├── app.py                     # API server & static asset router
+│   ├── db.py                      # SQLite database schema
+│   ├── seed.py                    # Demonstration accounts & transaction history
 │   └── engine/
 │       ├── quote.py               # Quote Engine (30s TTL, route comparison)
 │       ├── risk.py                # Risk & validation checks
 │       ├── execution.py           # Settlement state machine & Stacks Tx generation
-│       └── webhook.py             # Webhook dispatcher with HMAC-SHA256 signatures
+│       └── webhook.py             # Webhook dispatcher with HMAC signatures
 ├── frontend/
-│   ├── index.html                 # Prototype UI (Consumer app, Card concept, Dev portal)
+│   ├── index.html                 # Single-page UI (Consumer app, Card concept, Dev portal)
 │   ├── app.js                     # Interactive client logic & guided story walkthrough
-│   └── styles.css                 # Fintech styling
+│   └── styles.css                 # Clean fintech styling
 └── tests/
     └── test_spendbtc.py           # Automated test suite (6 passing unit/integration tests)
 ```
 
-### Running the Reference Prototype Locally
+### Running Locally
 1. Clone the repository:
    ```bash
    git clone https://github.com/affolabi/SpendBTC.git
    cd SpendBTC
    ```
-2. Run the prototype launcher:
+2. Run the launcher:
    ```bash
    ./run.sh
    ```
-3. Open `http://localhost:8000` to interact with the prototype and run the guided architecture tour.
+3. Open `http://localhost:8000` in your browser.
 
 ---
 
-## 8. Ecosystem Impact
+## 8. Product Roadmap
 
-* **Accelerating sBTC Utility**: Directly expands the utility of sBTC beyond DeFi yield by turning it into everyday spending capital.
-* **Non-Custodial Bitcoin Payments**: Enables users to spend Bitcoin without giving up custody to centralized exchanges or custodial card providers.
-* **Fintech Bridge**: Lowers the barrier for Web2 fintechs, wallets, and neobanks to offer Bitcoin spending capabilities using Stacks smart contracts.
+- **Phase 1 — Specification & Prototype (Current)**
+  - Core architectural blueprint and PRD
+  - Reference Clarity escrow contract (`spendbtc-settlement.clar`)
+  - Quote engine design with 30s rate lock & multi-route comparison
+  - Interactive reference prototype & developer portal
+- **Phase 2 — Developer Infrastructure**
+  - Production-grade API & partner SDK (`@spendbtc/sdk`)
+  - Mainnet & Testnet Clarity contract deployment
+  - Live DEX liquidity aggregation (Bitflow, ALEX)
+  - Partner webhook infrastructure with automated retries
+- **Phase 3 — Payment Integrations**
+  - Licensed card issuing partner integration (virtual & physical cards)
+  - Fiat off-ramp settlement rails (Local bank transfers, SEPA, ACH)
+  - One-click checkout widget for e-commerce (Shopify, WooCommerce)
+- **Phase 4 — Bitcoin Spending Network**
+  - Universal spending layer embedded into major neobanks, crypto wallets, and payroll platforms.
 
 ---
 
